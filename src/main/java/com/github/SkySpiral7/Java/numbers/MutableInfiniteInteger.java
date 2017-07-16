@@ -589,7 +589,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    }
 
    /**
-    * <p>A Googolplex is a huge number that is easy to define. It is equal to 10<sup>10<sup>100</sup></sup>.
+    * <p>A Googolplex is a huge number that is easy to define. It is equal to 10<sup>10^100</sup>.
     * This number will not fit into a BigInteger, the reason this method is defined is to show that this class
     * does allow such a number (even if the hardware does not). This calculation is correct but is guarantee to never finish
     * due to hardware limits (see below).</p>
@@ -599,7 +599,9 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     * Assuming each bit was
     * <a href="http://www.cio.com/article/2400538/data-management/ibm-smashes-moore-s-law--cuts-bit-size-to-12-atoms.html">12 atoms</a>
     * then the entire observable universe wouldn't have enough bits
-    * (<a href="http://www.wolframalpha.com/input/?i=%28atoms+in+the+observable+universe%29%2F12">8e78</a>).
+    * (using <a href="http://www.wolframalpha.com/input/?i=%28atoms+in+the+observable+universe%29%2F12">8e78</a> atoms).
+    * More specifically every atom would need to hold 300 quintillion (<a
+    * href="http://www.wolframalpha.com/input/?i=log2(googolplex)+%2F+(1e80)">3.32193e20</a>) bits.
     * So even though this class allows such a number the universe doesn't: but it's the thought that counts.
     * </p>
     *

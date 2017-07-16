@@ -125,7 +125,7 @@ public final class AsynchronousFileReader implements Closeable
       if (!amOpen) throw new ClosedResourceException("Can't read from a closed stream");
       //otherwise it would wait forever
 
-      if (byteCount > remainingBytes) throw new NoMoreDataException(byteCount, remainingBytes);
+      if (byteCount > remainingBytes) throw NoMoreDataException.notEnoughBytes(byteCount, remainingBytes);
       remainingBytes -= byteCount;
 
       final byte[] result = new byte[byteCount];

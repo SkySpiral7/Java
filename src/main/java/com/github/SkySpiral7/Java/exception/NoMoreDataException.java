@@ -32,8 +32,8 @@ public class NoMoreDataException extends RuntimeException
    /**
     * Constructs a <code>NoMoreDataException</code> indicating that there aren't enough remaining bytes.
     */
-   public NoMoreDataException(final long expectedByteCount, final long remainingByteCount)
+   public static NoMoreDataException notEnoughBytes(final long expectedByteCount, final long remainingByteCount)
    {
-      super("expected " + expectedByteCount + " bytes, found " + remainingByteCount + " bytes");
+      return new NoMoreDataException("expected " + expectedByteCount + " bytes, found " + remainingByteCount + " bytes");
    }
 }
