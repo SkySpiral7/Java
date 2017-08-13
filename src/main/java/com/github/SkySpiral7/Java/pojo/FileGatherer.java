@@ -25,37 +25,17 @@ public final class FileGatherer
 {
    private final Path rootFolder;
    private final Predicate<Path> exploreCriteria;
-   private final int maxDepth;
    private final Comparator<Path> pathOrder;
    //TODO: being immutable in this case is pointless so combine the builder into the main class
 
    /*
-    * @param rootFolder the root which will be searched along with all subfolders
-    * @param gatherCriteria will compare using gatherCriteria.matcher(thisFile.getName()).find() this includes extension type
-    * @param exploreCriteria will compare using folderCriteria.matcher(thisFile.getName()).find() to determine if the folder should be
-    * explored
-    * @param maxDepth pass -1 to have no maximum otherwise it only will go that number of folders down pass 0 for this folder only
-    * @param maxFinds pass -1 to have no maximum
-    * @return a list of files with matching names
-    */
-   /*
     * @param rootFolder        the root which will be searched along with all subfolders
-    * @param gatherCriteria      if accept returns true then the file will be added to the search results
     * @param exploreCriteria if accept returns false then the folder will not be searched. Note that this is called on rootFolder
-    * @param maxDepth          pass -1 to have no maximum otherwise it only will go that number of folders down pass 0 for this folder only
-    * @param maxFinds          pass -1 to have no maximum
     */
    public FileGatherer(final Builder builder)
    {
       this.rootFolder = builder.getRootFolder();
-      final int relativeMaxDepth = builder.getMaxDepth();
-      this.maxDepth = (relativeMaxDepth == -1) ? relativeMaxDepth : (rootFolder.getNameCount() + 1);
-      //+1 so that the rootFolder itself isn't counted
-      if (maxDepth != -1)
-      {
-         this.exploreCriteria = builder.getExploreCriteria().and(path -> (maxDepth < path.getNameCount()));
-      }
-      else this.exploreCriteria = builder.getExploreCriteria();
+      this.exploreCriteria = builder.getExploreCriteria();
       this.pathOrder = builder.getPathOrder();
    }
 
@@ -154,7 +134,6 @@ public final class FileGatherer
    {
       private Path rootFolder;
       private Predicate<Path> exploreCriteria;
-      private int maxDepth;
       private Comparator<Path> pathOrder;
 
       public Builder()
@@ -162,7 +141,6 @@ public final class FileGatherer
          //the default root is where this class's project (or executable jar) is located
          rootFolder = Paths.get(".");
          exploreCriteria = Filters.ACCEPT_ALL;
-         maxDepth = -1;
          pathOrder = Comparator.naturalOrder();
       }
 
@@ -171,25 +149,27 @@ public final class FileGatherer
          return new FileGatherer(this);
       }
 
-      public Builder unlimitedDepth()
-      {
-         this.maxDepth = -1;
-         return this;
-      }
-
-      public Builder maxDepth(final int maxDepth)
-      {
-         if (maxDepth != -1 && maxDepth < 1) throw new IllegalArgumentException("Expected -1 or >= 1. Actual: " + maxDepth);
-         this.maxDepth = maxDepth;
-         return this;
-      }
-
       public Builder rootFolder(final Path rootFolder)
       {
          Objects.requireNonNull(rootFolder);
          if (Files.notExists(rootFolder)) throw new IllegalArgumentException(rootFolder + " doesn't exist");
          if (Files.isRegularFile(rootFolder)) throw new IllegalArgumentException(rootFolder + " isn't a directory");
          this.rootFolder = rootFolder;
+         return this;
+      }
+
+      /**
+       * Will set rootFolder and create an exploreCriteria
+       *
+       * @param relativeMaxDepth 0 is the same as having exploreCriteria always reject
+       */
+      public Builder maxDepth(final Path rootFolder, final int relativeMaxDepth)
+      {
+         this.rootFolder(rootFolder);  //I don't think it needs to be normalized or absolute
+         if (relativeMaxDepth < 0)
+            throw new IllegalArgumentException("Impossible to explore with a relativeMaxDepth of " + relativeMaxDepth);
+         final int absoluteMaxDepth = rootFolder.getNameCount() + relativeMaxDepth;
+         exploreCriteria = path -> (absoluteMaxDepth >= path.getNameCount());
          return this;
       }
 
@@ -215,11 +195,6 @@ public final class FileGatherer
          return exploreCriteria;
       }
 
-      public int getMaxDepth()
-      {
-         return maxDepth;
-      }
-
       public Path getRootFolder()
       {
          return rootFolder;
@@ -237,11 +212,6 @@ public final class FileGatherer
    public Predicate<Path> getExploreCriteria()
    {
       return exploreCriteria;
-   }
-
-   public int getMaxDepth()
-   {
-      return maxDepth;
    }
 
    public Path getRootFolder()
