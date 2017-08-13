@@ -1,7 +1,6 @@
 package com.github.SkySpiral7.Java.pojo;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
@@ -14,6 +13,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -21,7 +21,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public final class FileGatherer
 {
    private final Path rootFolder;
-   private final FileFilter gatherCriteria, exploreCriteria;
+   private final Predicate<Path> gatherCriteria, exploreCriteria;
    private final int maxDepth, maxFinds;
 
    /*
@@ -43,11 +43,12 @@ public final class FileGatherer
    public FileGatherer(final Builder builder)
    {
       this.rootFolder = builder.getRootFolder();
-      this.exploreCriteria = builder.getExploreCriteria();
       this.gatherCriteria = builder.getGatherCriteria();
+      //TODO: bundle max depth into exploreCriteria (at this point)
       final int relativeMaxDepth = builder.getMaxDepth();
       this.maxDepth = (relativeMaxDepth == -1) ? relativeMaxDepth : (rootFolder.getNameCount() + 1);
       //+1 so that the rootFolder itself isn't counted
+      this.exploreCriteria = builder.getExploreCriteria();
       this.maxFinds = builder.getMaxFinds();
    }
 
@@ -61,7 +62,7 @@ public final class FileGatherer
       return FileGatherer.search(rootFolder, Filters.ACCEPT_ALL);
    }
 
-   public static List<File> search(final Path rootFolder, final FileFilter fileCriteria)
+   public static List<File> search(final Path rootFolder, final Predicate<Path> fileCriteria)
    {
       return new Builder().rootFolder(rootFolder).gatherCriteria(fileCriteria).build().search();
    }
@@ -76,18 +77,19 @@ public final class FileGatherer
       final List<File> result = new ArrayList<>();
       final Deque<Path> remaining = new ArrayDeque<>();
 
+      //TODO: make an iterator to return a Stream<Path>. this removes gatherCriteria and maxFinds
+      //TODO: add a comparator for file order (will still be depth first)
       remaining.add(rootFolder);
       try
       {
          while (!remaining.isEmpty())
          {
             final Path thisPath = remaining.pollLast();
-            final File thisFile = thisPath.toFile();
             //ignore when too deep but don't break because there might be unexplored files that aren't too deep
             if (maxDepth != -1 && maxDepth < thisPath.getNameCount()) continue;
-            if (Files.isDirectory(thisPath) && exploreCriteria.accept(thisFile))
+            if (Files.isDirectory(thisPath) && exploreCriteria.test(thisPath))
                remaining.addAll(Files.list(thisPath).collect(Collectors.toList()));
-            if (gatherCriteria.accept(thisFile)) result.add(thisFile);
+            if (gatherCriteria.test(thisPath)) result.add(thisPath.toFile());
             if (maxFinds == result.size()) break;
          }
       }
@@ -102,30 +104,40 @@ public final class FileGatherer
 
    public static final class Filters
    {
-      public static final FileFilter ACCEPT_ALL = file -> true;
-      public static final FileFilter EXCLUDE_HIDDEN = file -> (!file.isHidden() && !file.getName().startsWith("."));
-      public static final FileFilter EXCLUDE_DIRECTORIES = file -> !file.isDirectory();
+      public static final Predicate<Path> ACCEPT_ALL = path -> true;
+      public static final Predicate<Path> EXCLUDE_HIDDEN = path ->
+      {
+         try
+         {
+            return Files.isHidden(path);
+         }
+         catch (IOException ioException)
+         {
+            throw new UncheckedIOException(ioException);
+         }
+      };
+      public static final Predicate<Path> EXCLUDE_DIRECTORIES = Files::isRegularFile;
 
       private Filters(){}
 
-      public static FileFilter acceptExtensions(final String... extensions)
+      public static Predicate<Path> acceptExtensions(final String... extensions)
       {
          //the name isn't required and it can't be seen
          final FileNameExtensionFilter extensionFilter = new FileNameExtensionFilter(null, extensions);
          //notice how extensionFilter is only created once and used for each call to accept
-         return file -> (!file.isDirectory() && extensionFilter.accept(file));
+         return path -> (Files.isRegularFile(path) && extensionFilter.accept(path.toFile()));
       }
 
-      public static FileFilter acceptNamePattern(final Pattern pattern)
+      public static Predicate<Path> acceptNamePattern(final Pattern pattern)
       {
-         return file -> pattern.matcher(file.getName()).find();
+         return path -> pattern.matcher(path.toFile().getName()).find();
       }
    }
 
    public static class Builder
    {
       private Path rootFolder;
-      private FileFilter gatherCriteria, exploreCriteria;
+      private Predicate<Path> gatherCriteria, exploreCriteria;
       private int maxDepth, maxFinds;
 
       public Builder()
@@ -177,14 +189,14 @@ public final class FileGatherer
          return this;
       }
 
-      public Builder exploreCriteria(final FileFilter subFolderCriteria)
+      public Builder exploreCriteria(final Predicate<Path> subFolderCriteria)
       {
          Objects.requireNonNull(subFolderCriteria);
          this.exploreCriteria = subFolderCriteria;
          return this;
       }
 
-      public Builder gatherCriteria(final FileFilter fileCriteria)
+      public Builder gatherCriteria(final Predicate<Path> fileCriteria)
       {
          Objects.requireNonNull(fileCriteria);
          this.gatherCriteria = fileCriteria;
@@ -194,12 +206,12 @@ public final class FileGatherer
       //**************************************************************************
       //Rest of file is generated getters
       //**************************************************************************
-      public FileFilter getExploreCriteria()
+      public Predicate<Path> getExploreCriteria()
       {
          return exploreCriteria;
       }
 
-      public FileFilter getGatherCriteria()
+      public Predicate<Path> getGatherCriteria()
       {
          return gatherCriteria;
       }
@@ -223,12 +235,12 @@ public final class FileGatherer
    //**************************************************************************
    //Rest of file is generated getters
    //**************************************************************************
-   public FileFilter getExploreCriteria()
+   public Predicate<Path> getExploreCriteria()
    {
       return exploreCriteria;
    }
 
-   public FileFilter getGatherCriteria()
+   public Predicate<Path> getGatherCriteria()
    {
       return gatherCriteria;
    }
