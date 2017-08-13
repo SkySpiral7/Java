@@ -23,30 +23,82 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public final class FileGatherer
       //I tested this class by hand since a UT would require a file system
 {
-   private final Path rootFolder;
-   private final Predicate<Path> exploreCriteria;
-   private final Comparator<Path> pathOrder;
-   //TODO: being immutable in this case is pointless so combine the builder into the main class
+   private Path rootFolder;
+   private Predicate<Path> exploreCriteria;
+   private Comparator<Path> pathOrder;
 
    /*
     * @param rootFolder        the root which will be searched along with all subfolders
     * @param exploreCriteria if accept returns false then the folder will not be searched. Note that this is called on rootFolder
     */
-   public FileGatherer(final Builder builder)
+   public FileGatherer()
    {
-      this.rootFolder = builder.getRootFolder();
-      this.exploreCriteria = builder.getExploreCriteria();
-      this.pathOrder = builder.getPathOrder();
+      //the default root is where this class's project (or executable jar) is located
+      rootFolder = Paths.get(".");
+      exploreCriteria = Filters.ACCEPT_ALL;
+      pathOrder = Comparator.naturalOrder();
+   }
+
+   public Path getRootFolder()
+   {
+      return rootFolder;
+   }
+
+   public Predicate<Path> getExploreCriteria()
+   {
+      return exploreCriteria;
+   }
+
+   public Comparator<Path> getPathOrder()
+   {
+      return pathOrder;
+   }
+
+   public FileGatherer withRootFolder(final Path rootFolder)
+   {
+      Objects.requireNonNull(rootFolder);
+      if (Files.notExists(rootFolder)) throw new IllegalArgumentException(rootFolder + " doesn't exist");
+      if (Files.isRegularFile(rootFolder)) throw new IllegalArgumentException(rootFolder + " isn't a directory");
+      this.rootFolder = rootFolder;
+      return this;
    }
 
    /**
-    * Also see Files.walk(Path) which does the same thing but might be more efficient.
+    * Will set rootFolder and create an exploreCriteria
+    *
+    * @param relativeMaxDepth 0 is the same as having exploreCriteria always reject
+    */
+   public FileGatherer withMaxDepth(final Path rootFolder, final int relativeMaxDepth)
+   {
+      this.withRootFolder(rootFolder);  //I don't think it needs to be normalized or absolute
+      if (relativeMaxDepth < 0) throw new IllegalArgumentException("Impossible to explore with a relativeMaxDepth of " + relativeMaxDepth);
+      final int absoluteMaxDepth = rootFolder.getNameCount() + relativeMaxDepth;
+      exploreCriteria = path -> (absoluteMaxDepth >= path.getNameCount());
+      return this;
+   }
+
+   public FileGatherer withExploreCriteria(final Predicate<Path> subFolderCriteria)
+   {
+      Objects.requireNonNull(subFolderCriteria);
+      this.exploreCriteria = subFolderCriteria;
+      return this;
+   }
+
+   public FileGatherer withPathOrder(final Comparator<Path> pathOrder)
+   {
+      Objects.requireNonNull(pathOrder);
+      this.pathOrder = pathOrder;
+      return this;
+   }
+
+   /**
+    * Also see Files.walk(Path) which does the same thing and might be more efficient but throws IOException.
     *
     * @see java.nio.file.Files#walk(Path, FileVisitOption...)
     */
    public static Stream<Path> search(final Path rootFolder)
    {
-      return new Builder().rootFolder(rootFolder).build().search();
+      return new FileGatherer().withRootFolder(rootFolder).search();
    }
 
    public static Stream<Path> searchForExtensions(final Path rootFolder, final String... extensions)
@@ -71,7 +123,7 @@ public final class FileGatherer
       {
          remaining.add(rootFolder);
          this.exploreCriteria = exploreCriteria;
-         //pathOrder is reversed because next() always removes the last element
+         //pathOrder is reversed because next() always uses the last element
          this.pathOrder = pathOrder.reversed();
       }
 
@@ -128,99 +180,5 @@ public final class FileGatherer
       {
          return path -> pattern.matcher(path.toFile().getName()).find();
       }
-   }
-
-   public static class Builder
-   {
-      private Path rootFolder;
-      private Predicate<Path> exploreCriteria;
-      private Comparator<Path> pathOrder;
-
-      public Builder()
-      {
-         //the default root is where this class's project (or executable jar) is located
-         rootFolder = Paths.get(".");
-         exploreCriteria = Filters.ACCEPT_ALL;
-         pathOrder = Comparator.naturalOrder();
-      }
-
-      public FileGatherer build()
-      {
-         return new FileGatherer(this);
-      }
-
-      public Builder rootFolder(final Path rootFolder)
-      {
-         Objects.requireNonNull(rootFolder);
-         if (Files.notExists(rootFolder)) throw new IllegalArgumentException(rootFolder + " doesn't exist");
-         if (Files.isRegularFile(rootFolder)) throw new IllegalArgumentException(rootFolder + " isn't a directory");
-         this.rootFolder = rootFolder;
-         return this;
-      }
-
-      /**
-       * Will set rootFolder and create an exploreCriteria
-       *
-       * @param relativeMaxDepth 0 is the same as having exploreCriteria always reject
-       */
-      public Builder maxDepth(final Path rootFolder, final int relativeMaxDepth)
-      {
-         this.rootFolder(rootFolder);  //I don't think it needs to be normalized or absolute
-         if (relativeMaxDepth < 0)
-            throw new IllegalArgumentException("Impossible to explore with a relativeMaxDepth of " + relativeMaxDepth);
-         final int absoluteMaxDepth = rootFolder.getNameCount() + relativeMaxDepth;
-         exploreCriteria = path -> (absoluteMaxDepth >= path.getNameCount());
-         return this;
-      }
-
-      public Builder exploreCriteria(final Predicate<Path> subFolderCriteria)
-      {
-         Objects.requireNonNull(subFolderCriteria);
-         this.exploreCriteria = subFolderCriteria;
-         return this;
-      }
-
-      public Builder pathOrder(final Comparator<Path> pathOrder)
-      {
-         Objects.requireNonNull(pathOrder);
-         this.pathOrder = pathOrder;
-         return this;
-      }
-
-      //**************************************************************************
-      //Rest of file is generated getters
-      //**************************************************************************
-      public Predicate<Path> getExploreCriteria()
-      {
-         return exploreCriteria;
-      }
-
-      public Path getRootFolder()
-      {
-         return rootFolder;
-      }
-
-      public Comparator<Path> getPathOrder()
-      {
-         return pathOrder;
-      }
-   }
-
-   //**************************************************************************
-   //Rest of file is generated getters
-   //**************************************************************************
-   public Predicate<Path> getExploreCriteria()
-   {
-      return exploreCriteria;
-   }
-
-   public Path getRootFolder()
-   {
-      return rootFolder;
-   }
-
-   public Comparator<Path> getPathOrder()
-   {
-      return pathOrder;
    }
 }
