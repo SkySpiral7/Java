@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +40,7 @@ public enum FileIoUtil
     */
    public static void writeToFile(final File targetFile, final String newContents)
    {
-      writeToFile(targetFile, newContents, StandardCharsets.UTF_8, false);
+      FileIoUtil.writeToFile(targetFile, newContents, StandardCharsets.UTF_8, false);
    }
 
    /**
@@ -51,7 +52,7 @@ public enum FileIoUtil
     */
    public static void appendToFile(final File targetFile, final String newContents)
    {
-      writeToFile(targetFile, newContents, StandardCharsets.UTF_8, true);
+      FileIoUtil.writeToFile(targetFile, newContents, StandardCharsets.UTF_8, true);
    }
 
    /**
@@ -67,17 +68,17 @@ public enum FileIoUtil
     */
    public static void writeToFile(final File targetFile, final String newContents, final Charset encoding, final boolean willAppend)
    {
-      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to write to a directory");
+      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to write to a directory (" + targetFile + ")");
       Objects.requireNonNull(newContents);
 
-      try (final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(targetFile, willAppend), encoding));)
+      try (final Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(targetFile, willAppend), encoding)))
       {
          // might create the file
          writer.write(newContents);
       }
-      catch (final IOException e)
+      catch (final IOException ioException)
       {
-         throw new RuntimeException(e);
+         throw new UncheckedIOException(ioException);
       }
    }
 
@@ -92,17 +93,17 @@ public enum FileIoUtil
     */
    public static void writeToFile(final File targetFile, final byte[] newContents, final boolean willAppend)
    {
-      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to write to a directory");
+      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to a directory (" + targetFile + ")");
       Objects.requireNonNull(newContents);
 
-      try (final OutputStream writer = new BufferedOutputStream(new FileOutputStream(targetFile, willAppend));)
+      try (final OutputStream writer = new BufferedOutputStream(new FileOutputStream(targetFile, willAppend)))
       {
          // might create the file
          writer.write(newContents);
       }
-      catch (final IOException e)
+      catch (final IOException ioException)
       {
-         throw new RuntimeException(e);
+         throw new UncheckedIOException(ioException);
       }
    }
 
@@ -117,7 +118,7 @@ public enum FileIoUtil
     */
    public static String readTextFile(final File targetFile)
    {
-      return readTextFile(targetFile, StandardCharsets.UTF_8);
+      return FileIoUtil.readTextFile(targetFile, StandardCharsets.UTF_8);
    }
 
    /**
@@ -136,16 +137,17 @@ public enum FileIoUtil
     */
    public static String readTextFile(final File targetFile, final Charset encoding)
    {
-      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to read file contents of a directory");
-      if (!targetFile.exists()) throw new IllegalArgumentException("File doesn't exist");
+      if (targetFile.isDirectory())
+         throw new IllegalArgumentException("It is not possible to read file contents of a directory (" + targetFile + ")");
+      if (!targetFile.exists()) throw new IllegalArgumentException("File " + targetFile + " doesn't exist");
 
       //this is only an estimate since character size is not always 1 byte
-      if (targetFile.length() > Integer.MAX_VALUE)
-         throw new IllegalArgumentException("File (length " + targetFile.length() + ") too large to fit into a string");
+      if (targetFile.length() > Integer.MAX_VALUE) throw new IllegalArgumentException(
+            "File " + targetFile + " (length " + targetFile.length() + ") is too large to fit into a string");
       //for completeness I could count the number of characters read and throw but it's better to have this hedge
 
       final StringBuilder returnValue = new StringBuilder();
-      try (final Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(targetFile.getAbsolutePath()), encoding));)
+      try (final Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(targetFile.getAbsolutePath()), encoding)))
       {
          while (true)
          {
@@ -178,11 +180,12 @@ public enum FileIoUtil
     */
    public static byte[] readBinaryFile(final File targetFile)
    {
-      if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to read file contents of a directory");
-      if (!targetFile.exists()) throw new IllegalArgumentException("File doesn't exist");
+      if (targetFile.isDirectory())
+         throw new IllegalArgumentException("It is not possible to read file contents of a directory (" + targetFile + ")");
+      if (!targetFile.exists()) throw new IllegalArgumentException("File " + targetFile + " doesn't exist");
 
-      if (targetFile.length() > Integer.MAX_VALUE)
-         throw new IllegalArgumentException("File (length " + targetFile.length() + ") too large to fit into a byte[]");
+      if (targetFile.length() > Integer.MAX_VALUE) throw new IllegalArgumentException(
+            "File " + targetFile + " (length " + targetFile.length() + ") is too large to fit into a byte[]");
 
       final byte[] result = new byte[(int) targetFile.length()];
       try
@@ -194,15 +197,17 @@ public enum FileIoUtil
             {
                final int bytesRemaining = result.length - totalBytesRead;
                final int bytesRead = input.read(result, totalBytesRead, bytesRemaining);
-               if (bytesRead == -1) throw new IllegalStateException("file contains fewer bytes then its length indicated");
+               if (bytesRead == -1) throw new IllegalStateException(
+                     "File " + targetFile + " contains fewer bytes then its length indicated. Expected: " + targetFile.length() + ". Got: "
+                     + totalBytesRead);
                totalBytesRead += bytesRead;
                //this loop usually has a single iteration
             }
          }
       }
-      catch (final IOException ex)
+      catch (final IOException ioException)
       {
-         throw new RuntimeException(ex);
+         throw new UncheckedIOException(ioException);
       }
       return result;
    }
