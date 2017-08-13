@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Objects;
@@ -25,6 +26,8 @@ public final class FileGatherer
    private final Path rootFolder;
    private final Predicate<Path> exploreCriteria;
    private final int maxDepth;
+   private final Comparator<Path> pathOrder;
+   //TODO: being immutable in this case is pointless so combine the builder into the main class
 
    /*
     * @param rootFolder the root which will be searched along with all subfolders
@@ -53,6 +56,7 @@ public final class FileGatherer
          this.exploreCriteria = builder.getExploreCriteria().and(path -> (maxDepth < path.getNameCount()));
       }
       else this.exploreCriteria = builder.getExploreCriteria();
+      this.pathOrder = builder.getPathOrder();
    }
 
    /**
@@ -72,21 +76,23 @@ public final class FileGatherer
 
    public Stream<Path> search()
    {
-      //TODO: add a comparator for file order (will still be depth first)
-      return StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(new PathIterator(rootFolder, exploreCriteria), Spliterator.ORDERED | Spliterator.NONNULL),
-            false);
+      return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new PathIterator(rootFolder, exploreCriteria, pathOrder),
+            //Although it is sorted don't set Spliterator.SORTED because the impl will incorrectly return null
+            Spliterator.ORDERED | Spliterator.NONNULL), false);
    }
 
    private static class PathIterator implements Iterator<Path>
    {
-      private final Deque<Path> remaining = new ArrayDeque<>();
+      private final Deque<Path> remaining = new ArrayDeque<>(32);
       private final Predicate<Path> exploreCriteria;
+      private final Comparator<Path> pathOrder;
 
-      private PathIterator(final Path rootFolder, final Predicate<Path> exploreCriteria)
+      private PathIterator(final Path rootFolder, final Predicate<Path> exploreCriteria, final Comparator<Path> pathOrder)
       {
          remaining.add(rootFolder);
          this.exploreCriteria = exploreCriteria;
+         //pathOrder is reversed because next() always removes the last element
+         this.pathOrder = pathOrder.reversed();
       }
 
       @Override
@@ -102,7 +108,7 @@ public final class FileGatherer
          try
          {
             if (Files.isDirectory(thisPath) && exploreCriteria.test(thisPath))
-               remaining.addAll(Files.list(thisPath).collect(Collectors.toList()));
+               remaining.addAll(Files.list(thisPath).sorted(pathOrder).collect(Collectors.toList()));
             return thisPath;
          }
          catch (final IOException ioException)
@@ -149,6 +155,7 @@ public final class FileGatherer
       private Path rootFolder;
       private Predicate<Path> exploreCriteria;
       private int maxDepth;
+      private Comparator<Path> pathOrder;
 
       public Builder()
       {
@@ -156,6 +163,7 @@ public final class FileGatherer
          rootFolder = Paths.get(".");
          exploreCriteria = Filters.ACCEPT_ALL;
          maxDepth = -1;
+         pathOrder = Comparator.naturalOrder();
       }
 
       public FileGatherer build()
@@ -192,6 +200,13 @@ public final class FileGatherer
          return this;
       }
 
+      public Builder pathOrder(final Comparator<Path> pathOrder)
+      {
+         Objects.requireNonNull(pathOrder);
+         this.pathOrder = pathOrder;
+         return this;
+      }
+
       //**************************************************************************
       //Rest of file is generated getters
       //**************************************************************************
@@ -208,6 +223,11 @@ public final class FileGatherer
       public Path getRootFolder()
       {
          return rootFolder;
+      }
+
+      public Comparator<Path> getPathOrder()
+      {
+         return pathOrder;
       }
    }
 
@@ -227,5 +247,10 @@ public final class FileGatherer
    public Path getRootFolder()
    {
       return rootFolder;
+   }
+
+   public Comparator<Path> getPathOrder()
+   {
+      return pathOrder;
    }
 }
