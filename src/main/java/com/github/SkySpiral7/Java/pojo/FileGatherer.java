@@ -44,11 +44,14 @@ public final class FileGatherer
    {
       this.rootFolder = builder.getRootFolder();
       this.gatherCriteria = builder.getGatherCriteria();
-      //TODO: bundle max depth into exploreCriteria (at this point)
       final int relativeMaxDepth = builder.getMaxDepth();
       this.maxDepth = (relativeMaxDepth == -1) ? relativeMaxDepth : (rootFolder.getNameCount() + 1);
       //+1 so that the rootFolder itself isn't counted
-      this.exploreCriteria = builder.getExploreCriteria();
+      if (maxDepth != -1)
+      {
+         this.exploreCriteria = builder.getExploreCriteria().and(path -> (maxDepth < path.getNameCount()));
+      }
+      else this.exploreCriteria = builder.getExploreCriteria();
       this.maxFinds = builder.getMaxFinds();
    }
 
@@ -85,8 +88,6 @@ public final class FileGatherer
          while (!remaining.isEmpty())
          {
             final Path thisPath = remaining.pollLast();
-            //ignore when too deep but don't break because there might be unexplored files that aren't too deep
-            if (maxDepth != -1 && maxDepth < thisPath.getNameCount()) continue;
             if (Files.isDirectory(thisPath) && exploreCriteria.test(thisPath))
                remaining.addAll(Files.list(thisPath).collect(Collectors.toList()));
             if (gatherCriteria.test(thisPath)) result.add(thisPath.toFile());
