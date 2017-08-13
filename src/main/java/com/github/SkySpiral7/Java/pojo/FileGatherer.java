@@ -1,6 +1,5 @@
 package com.github.SkySpiral7.Java.pojo;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
@@ -8,21 +7,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public final class FileGatherer
+      //I tested this class by hand since a UT would require a file system
 {
    private final Path rootFolder;
-   private final Predicate<Path> gatherCriteria, exploreCriteria;
-   private final int maxDepth, maxFinds;
+   private final Predicate<Path> exploreCriteria;
+   private final int maxDepth;
 
    /*
     * @param rootFolder the root which will be searched along with all subfolders
@@ -43,7 +45,6 @@ public final class FileGatherer
    public FileGatherer(final Builder builder)
    {
       this.rootFolder = builder.getRootFolder();
-      this.gatherCriteria = builder.getGatherCriteria();
       final int relativeMaxDepth = builder.getMaxDepth();
       this.maxDepth = (relativeMaxDepth == -1) ? relativeMaxDepth : (rootFolder.getNameCount() + 1);
       //+1 so that the rootFolder itself isn't counted
@@ -52,55 +53,63 @@ public final class FileGatherer
          this.exploreCriteria = builder.getExploreCriteria().and(path -> (maxDepth < path.getNameCount()));
       }
       else this.exploreCriteria = builder.getExploreCriteria();
-      this.maxFinds = builder.getMaxFinds();
    }
 
    /**
-    * Also see Files.walk(Path) which (if passed no file visitors) does the same thing (but is more efficient).
+    * Also see Files.walk(Path) which does the same thing but might be more efficient.
     *
     * @see java.nio.file.Files#walk(Path, FileVisitOption...)
     */
-   public static List<File> search(final Path rootFolder)
+   public static Stream<Path> search(final Path rootFolder)
    {
-      return FileGatherer.search(rootFolder, Filters.ACCEPT_ALL);
+      return new Builder().rootFolder(rootFolder).build().search();
    }
 
-   public static List<File> search(final Path rootFolder, final Predicate<Path> fileCriteria)
+   public static Stream<Path> searchForExtensions(final Path rootFolder, final String... extensions)
    {
-      return new Builder().rootFolder(rootFolder).gatherCriteria(fileCriteria).build().search();
+      return FileGatherer.search(rootFolder).filter(Filters.acceptExtensions(extensions));
    }
 
-   public static List<File> searchForFilesWithExtensions(final Path rootFolder, final String... extensions)
+   public Stream<Path> search()
    {
-      return FileGatherer.search(rootFolder, Filters.acceptExtensions(extensions));
-   }
-
-   public List<File> search()
-   {
-      final List<File> result = new ArrayList<>();
-      final Deque<Path> remaining = new ArrayDeque<>();
-
-      //TODO: make an iterator to return a Stream<Path>. this removes gatherCriteria and maxFinds
       //TODO: add a comparator for file order (will still be depth first)
-      remaining.add(rootFolder);
-      try
+      return StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(new PathIterator(rootFolder, exploreCriteria), Spliterator.ORDERED | Spliterator.NONNULL),
+            false);
+   }
+
+   private static class PathIterator implements Iterator<Path>
+   {
+      private final Deque<Path> remaining = new ArrayDeque<>();
+      private final Predicate<Path> exploreCriteria;
+
+      private PathIterator(final Path rootFolder, final Predicate<Path> exploreCriteria)
       {
-         while (!remaining.isEmpty())
+         remaining.add(rootFolder);
+         this.exploreCriteria = exploreCriteria;
+      }
+
+      @Override
+      public boolean hasNext()
+      {
+         return !remaining.isEmpty();
+      }
+
+      @Override
+      public Path next()
+      {
+         final Path thisPath = remaining.pollLast();
+         try
          {
-            final Path thisPath = remaining.pollLast();
             if (Files.isDirectory(thisPath) && exploreCriteria.test(thisPath))
                remaining.addAll(Files.list(thisPath).collect(Collectors.toList()));
-            if (gatherCriteria.test(thisPath)) result.add(thisPath.toFile());
-            if (maxFinds == result.size()) break;
+            return thisPath;
+         }
+         catch (final IOException ioException)
+         {
+            throw new UncheckedIOException("Could not open directory " + thisPath, ioException);
          }
       }
-      catch (final IOException ioException)
-      {
-         throw new UncheckedIOException("Could not open a directory", ioException);
-      }
-
-      Collections.sort(result);  //so that the results will have some kind of order (in this case full path alphabetical ascending)
-      return result;
    }
 
    public static final class Filters
@@ -138,16 +147,15 @@ public final class FileGatherer
    public static class Builder
    {
       private Path rootFolder;
-      private Predicate<Path> gatherCriteria, exploreCriteria;
-      private int maxDepth, maxFinds;
+      private Predicate<Path> exploreCriteria;
+      private int maxDepth;
 
       public Builder()
       {
          //the default root is where this class's project (or executable jar) is located
-         rootFolder = Paths.get(".").toAbsolutePath().normalize();
+         rootFolder = Paths.get(".");
          exploreCriteria = Filters.ACCEPT_ALL;
-         gatherCriteria = Filters.EXCLUDE_DIRECTORIES;
-         maxFinds = maxDepth = -1;
+         maxDepth = -1;
       }
 
       public FileGatherer build()
@@ -168,25 +176,12 @@ public final class FileGatherer
          return this;
       }
 
-      public Builder unlimitedFinds()
-      {
-         this.maxFinds = -1;
-         return this;
-      }
-
-      public Builder maxFinds(final int maxFinds)
-      {
-         if (maxFinds != -1 && maxFinds < 1) throw new IllegalArgumentException("Expected -1 or >= 1. Actual: " + maxFinds);
-         this.maxFinds = maxFinds;
-         return this;
-      }
-
       public Builder rootFolder(final Path rootFolder)
       {
          Objects.requireNonNull(rootFolder);
          if (Files.notExists(rootFolder)) throw new IllegalArgumentException(rootFolder + " doesn't exist");
          if (Files.isRegularFile(rootFolder)) throw new IllegalArgumentException(rootFolder + " isn't a directory");
-         this.rootFolder = rootFolder.toAbsolutePath().normalize();
+         this.rootFolder = rootFolder;
          return this;
       }
 
@@ -194,13 +189,6 @@ public final class FileGatherer
       {
          Objects.requireNonNull(subFolderCriteria);
          this.exploreCriteria = subFolderCriteria;
-         return this;
-      }
-
-      public Builder gatherCriteria(final Predicate<Path> fileCriteria)
-      {
-         Objects.requireNonNull(fileCriteria);
-         this.gatherCriteria = fileCriteria;
          return this;
       }
 
@@ -212,19 +200,9 @@ public final class FileGatherer
          return exploreCriteria;
       }
 
-      public Predicate<Path> getGatherCriteria()
-      {
-         return gatherCriteria;
-      }
-
       public int getMaxDepth()
       {
          return maxDepth;
-      }
-
-      public int getMaxFinds()
-      {
-         return maxFinds;
       }
 
       public Path getRootFolder()
@@ -241,19 +219,9 @@ public final class FileGatherer
       return exploreCriteria;
    }
 
-   public Predicate<Path> getGatherCriteria()
-   {
-      return gatherCriteria;
-   }
-
    public int getMaxDepth()
    {
       return maxDepth;
-   }
-
-   public int getMaxFinds()
-   {
-      return maxFinds;
    }
 
    public Path getRootFolder()
