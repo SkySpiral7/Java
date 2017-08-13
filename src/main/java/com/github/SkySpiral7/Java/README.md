@@ -51,10 +51,10 @@ A simple program to find files deeply and return a List<File>.
 **Inputs**:
 
 1. rootFolder: where to start.
-2. fileCriteria and folderCriteria which is a Pattern that is compared to the file name to determine if it should be in the resulting list.
+2. gatherCriteria and folderCriteria which is a Pattern that is compared to the file name to determine if it should be in the resulting list.
 3. subFolderCriteria a Pattern that is compared to the folder name to determine if it should be explored or not
 4. maxFinds and maxDepth use -1 for no limit. maxDepth is the number of folders down to go from root
-5. findFolders and findFiles booleans to determine if files and/or folders should be included in resulting list. these trump fileCriteria and folderCriteria
+5. findFolders and findFiles booleans to determine if files and/or folders should be included in resulting list. these trump gatherCriteria and folderCriteria
 
 **Outputs**: List<File> that meets the criteria
 

@@ -3,89 +3,52 @@ package com.github.SkySpiral7.Java.pojo;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class FileGatherer
+public final class FileGatherer
 {
-   private File rootFolder;
-   private FileFilter fileCriteria, subFolderCriteria, folderCriteria;
-   private int maxDepth, maxFinds;
-   private boolean findFolders, findFiles;
+   private final Path rootFolder;
+   private final FileFilter gatherCriteria, exploreCriteria;
+   private final int maxDepth, maxFinds;
 
    /*
     * @param rootFolder the root which will be searched along with all subfolders
-    * @param fileCriteria will compare using fileCriteria.matcher(thisFile.getName()).find() this includes extension type
-    * @param folderCriteria will compare using folderCriteria.matcher(thisFile.getName()).find() to determine if folder matches the pattern
-    * @param subFolderCriteria will compare using folderCriteria.matcher(thisFile.getName()).find() to determine if the folder should be
+    * @param gatherCriteria will compare using gatherCriteria.matcher(thisFile.getName()).find() this includes extension type
+    * @param exploreCriteria will compare using folderCriteria.matcher(thisFile.getName()).find() to determine if the folder should be
     * explored
     * @param maxDepth pass -1 to have no maximum otherwise it only will go that number of folders down pass 0 for this folder only
     * @param maxFinds pass -1 to have no maximum
-    * @param findFolders true if you want to check folder's names or false if you do not
-    * @param findFiles whether or not you want non-directory (ie normal) files
     * @return a list of files with matching names
     */
    /*
-    * This method returns all fields to their default values. The entire code is as follows:<code><pre>
-rootFolder = new File(".");  //the default root is where this class's project (or executable jar) is located
-folderCriteria = fileCriteria = subFolderCriteria = Filters.ACCEPT_ALL;
-findFiles = true;
-findFolders = false;
-maxFinds = maxDepth = -1;</pre></code>
-	 */
-   public FileGatherer()
-   {
-      rootFolder = new File(".");  //the default root is where this class's project (or executable jar) is located
-      folderCriteria = fileCriteria = subFolderCriteria = Filters.ACCEPT_ALL;
-      findFiles = true;
-      findFolders = false;
-      maxFinds = maxDepth = -1;
-   }
-
-   public FileGatherer(File rootFolder)
-   {
-      this(rootFolder, Filters.ACCEPT_ALL);
-   }
-
-   public FileGatherer(File rootFolder, FileFilter fileCriteria)
-   {
-      this();
-      this.fileCriteria = fileCriteria;
-      this.rootFolder = rootFolder;
-   }
-
-   /**
     * @param rootFolder        the root which will be searched along with all subfolders
-    * @param fileCriteria      if accept returns true then the file will be added to the search results
-    * @param folderCriteria    if accept returns true then the folder will be added to the search results
-    * @param subFolderCriteria if accept returns false then the folder will not be searched. Note that this is called on rootFolder
+    * @param gatherCriteria      if accept returns true then the file will be added to the search results
+    * @param exploreCriteria if accept returns false then the folder will not be searched. Note that this is called on rootFolder
     * @param maxDepth          pass -1 to have no maximum otherwise it only will go that number of folders down pass 0 for this folder only
     * @param maxFinds          pass -1 to have no maximum
-    * @param findFolders       true if you want to check folder's names or false if you do not
-    * @param findFiles         whether or not you want non-directory (ie normal) files
     */
-   public FileGatherer(Builder builder)
+   public FileGatherer(final Builder builder)
    {
-      //this();  //doesn't need since it defines everything
-      this.subFolderCriteria = builder.subFolderCriteria;
-      this.folderCriteria = builder.folderCriteria;
-      this.fileCriteria = builder.fileCriteria;
-      this.maxDepth = builder.maxDepth;
-      this.maxFinds = builder.maxFinds;
-      this.findFolders = builder.findFolders;
-      this.findFiles = builder.findFiles;
-      this.rootFolder = builder.rootFolder;
+      this.rootFolder = builder.getRootFolder();
+      this.exploreCriteria = builder.getExploreCriteria();
+      this.gatherCriteria = builder.getGatherCriteria();
+      final int relativeMaxDepth = builder.getMaxDepth();
+      this.maxDepth = (relativeMaxDepth == -1) ? relativeMaxDepth : (rootFolder.getNameCount() + 1);
+      //+1 so that the rootFolder itself isn't counted
+      this.maxFinds = builder.getMaxFinds();
    }
 
    /**
@@ -93,109 +56,89 @@ maxFinds = maxDepth = -1;</pre></code>
     *
     * @see java.nio.file.Files#walk(Path, FileVisitOption...)
     */
-   public static List<File> searchForFiles(File rootFolder)
+   public static List<File> search(final Path rootFolder)
    {
-      return searchForFiles(rootFolder, Filters.ACCEPT_ALL);
+      return FileGatherer.search(rootFolder, Filters.ACCEPT_ALL);
    }
 
-   public static List<File> searchForFiles(File rootFolder, FileFilter fileCriteria)
+   public static List<File> search(final Path rootFolder, final FileFilter fileCriteria)
    {
-      return new FileGatherer(rootFolder, fileCriteria).search();
+      return new Builder().rootFolder(rootFolder).gatherCriteria(fileCriteria).build().search();
    }
 
-   public static List<File> searchForFolders(File rootFolder, FileFilter folderCriteria)
+   public static List<File> searchForFilesWithExtensions(final Path rootFolder, final String... extensions)
    {
-      FileGatherer temp = new FileGatherer();
-      temp.rootFolder = rootFolder;
-      temp.folderCriteria = folderCriteria;
-      temp.findFolders = true;
-      temp.findFiles = false;
-      return temp.search();
-   }
-
-   public static List<File> searchForFilesWithExtension(File rootFolder, String... extensions)
-   {
-      return new FileGatherer(rootFolder, Filters.acceptExtensions(extensions)).search();
+      return FileGatherer.search(rootFolder, Filters.acceptExtensions(extensions));
    }
 
    public List<File> search()
    {
-      List<File> result = new ArrayList<File>();
-      Deque<File> remaining = new ArrayDeque<File>();
-
-      //TODO: use more nio (have builder convert)
-      if (maxDepth != -1) maxDepth += Paths.get(rootFolder.getAbsolutePath()).getNameCount() + 1;
-      //this math is done to convert maxDepth from relative depth to absolute depth
-      //+1 make it rootFolder's children not rootFolder itself
+      final List<File> result = new ArrayList<>();
+      final Deque<Path> remaining = new ArrayDeque<>();
 
       remaining.add(rootFolder);
-      while (!remaining.isEmpty())
+      try
       {
-         final File thisFile = remaining.pollLast();
-         if (maxDepth != -1 && maxDepth < Paths.get(thisFile.getAbsolutePath()).getNameCount()) continue;
-         try
+         while (!remaining.isEmpty())
          {
-            if (thisFile.isDirectory()) Files.newDirectoryStream(thisFile.toPath());
+            final Path thisPath = remaining.pollLast();
+            final File thisFile = thisPath.toFile();
+            //ignore when too deep but don't break because there might be unexplored files that aren't too deep
+            if (maxDepth != -1 && maxDepth < thisPath.getNameCount()) continue;
+            if (Files.isDirectory(thisPath) && exploreCriteria.accept(thisFile))
+               remaining.addAll(Files.list(thisPath).collect(Collectors.toList()));
+            if (gatherCriteria.accept(thisFile)) result.add(thisFile);
+            if (maxFinds == result.size()) break;
          }
-         catch (final AccessDeniedException e)
-         {
-            continue;  //ignore the directory
-         }
-         catch (final IOException e)
-         {
-            throw new RuntimeException(e);
-         }
-         if (thisFile.isDirectory() && subFolderCriteria.accept(thisFile)) remaining.addAll(Arrays.asList(thisFile.listFiles()));
-
-         if (!thisFile.isDirectory() && findFiles && fileCriteria.accept(thisFile)) result.add(thisFile);
-         else if (thisFile.isDirectory() && findFolders && folderCriteria.accept(thisFile)) result.add(thisFile);
-
-         if (maxFinds == result.size()) break;
+      }
+      catch (final IOException ioException)
+      {
+         throw new UncheckedIOException("Could not open a directory", ioException);
       }
 
       Collections.sort(result);  //so that the results will have some kind of order (in this case full path alphabetical ascending)
       return result;
    }
 
-   public static class Filters
+   public static final class Filters
    {
-      public static final FileFilter ACCEPT_ALL = (File file) -> true;
-      public static final FileFilter FILTER_HIDDEN = (File file) -> (!file.isHidden() && !file.getName().startsWith("."));
+      public static final FileFilter ACCEPT_ALL = file -> true;
+      public static final FileFilter EXCLUDE_HIDDEN = file -> (!file.isHidden() && !file.getName().startsWith("."));
+      public static final FileFilter EXCLUDE_DIRECTORIES = file -> !file.isDirectory();
 
-      public static FileFilter acceptExtensions(String... extensions)
+      private Filters(){}
+
+      public static FileFilter acceptExtensions(final String... extensions)
       {
          //the name isn't required and it can't be seen
          final FileNameExtensionFilter extensionFilter = new FileNameExtensionFilter(null, extensions);
          //notice how extensionFilter is only created once and used for each call to accept
-         return (File file) -> (!file.isDirectory() && extensionFilter.accept(file));
+         return file -> (!file.isDirectory() && extensionFilter.accept(file));
       }
 
-      public static FileFilter acceptNamePattern(Pattern pattern)
+      public static FileFilter acceptNamePattern(final Pattern pattern)
       {
-         return (File file) -> pattern.matcher(file.getName()).find();
+         return file -> pattern.matcher(file.getName()).find();
       }
    }
 
    public static class Builder
    {
-      private File rootFolder;
-      private FileFilter fileCriteria, subFolderCriteria, folderCriteria;
+      private Path rootFolder;
+      private FileFilter gatherCriteria, exploreCriteria;
       private int maxDepth, maxFinds;
-      private boolean findFolders, findFiles;
 
       public Builder()
       {
-         rootFolder = new File(".");  //the default root is where this class's project (or executable jar) is located
-         folderCriteria = fileCriteria = subFolderCriteria = Filters.ACCEPT_ALL;
-         findFiles = true;
-         findFolders = false;
+         //the default root is where this class's project (or executable jar) is located
+         rootFolder = Paths.get(".").toAbsolutePath().normalize();
+         exploreCriteria = Filters.ACCEPT_ALL;
+         gatherCriteria = Filters.EXCLUDE_DIRECTORIES;
          maxFinds = maxDepth = -1;
       }
 
       public FileGatherer build()
       {
-         if (!findFiles && !findFolders) throw new IllegalStateException("Nothing to find. findFiles=findFolders=false");
-         if (maxFinds == 0) throw new IllegalStateException("Nothing to find. maxFinds=0");
          return new FileGatherer(this);
       }
 
@@ -205,7 +148,7 @@ maxFinds = maxDepth = -1;</pre></code>
          return this;
       }
 
-      public Builder maxDepth(int maxDepth)
+      public Builder maxDepth(final int maxDepth)
       {
          if (maxDepth != -1 && maxDepth < 1) throw new IllegalArgumentException("Expected -1 or >= 1. Actual: " + maxDepth);
          this.maxDepth = maxDepth;
@@ -218,74 +161,47 @@ maxFinds = maxDepth = -1;</pre></code>
          return this;
       }
 
-      public Builder maxFinds(int maxFinds)
+      public Builder maxFinds(final int maxFinds)
       {
          if (maxFinds != -1 && maxFinds < 1) throw new IllegalArgumentException("Expected -1 or >= 1. Actual: " + maxFinds);
          this.maxFinds = maxFinds;
          return this;
       }
 
-      public Builder rootFolder(File rootFolder)
+      public Builder rootFolder(final Path rootFolder)
       {
          Objects.requireNonNull(rootFolder);
-         if (!rootFolder.exists()) throw new IllegalArgumentException(rootFolder + " doesn't exist");
-         if (!rootFolder.isDirectory()) throw new IllegalArgumentException(rootFolder + " isn't a directory");
-         this.rootFolder = rootFolder;
+         if (Files.notExists(rootFolder)) throw new IllegalArgumentException(rootFolder + " doesn't exist");
+         if (Files.isRegularFile(rootFolder)) throw new IllegalArgumentException(rootFolder + " isn't a directory");
+         this.rootFolder = rootFolder.toAbsolutePath().normalize();
          return this;
       }
 
-      //**************************************************************************
-      //Basic field setting methods for a builder
-      //**************************************************************************
-      public Builder subFolderCriteria(FileFilter subFolderCriteria)
+      public Builder exploreCriteria(final FileFilter subFolderCriteria)
       {
-         Objects.requireNonNull(rootFolder);
-         this.subFolderCriteria = subFolderCriteria;
+         Objects.requireNonNull(subFolderCriteria);
+         this.exploreCriteria = subFolderCriteria;
          return this;
       }
 
-      public Builder folderCriteria(FileFilter folderCriteria)
+      public Builder gatherCriteria(final FileFilter fileCriteria)
       {
-         Objects.requireNonNull(rootFolder);
-         this.folderCriteria = folderCriteria;
-         return this;
-      }
-
-      public Builder fileCriteria(FileFilter fileCriteria)
-      {
-         Objects.requireNonNull(rootFolder);
-         this.fileCriteria = fileCriteria;
-         return this;
-      }
-
-      public Builder findFolders(boolean findFolders)
-      {
-         this.findFolders = findFolders;
-         return this;
-      }
-
-      public Builder findFiles(boolean findFiles)
-      {
-         this.findFiles = findFiles;
+         Objects.requireNonNull(fileCriteria);
+         this.gatherCriteria = fileCriteria;
          return this;
       }
 
       //**************************************************************************
       //Rest of file is generated getters
       //**************************************************************************
-      public FileFilter getSubFolderCriteria()
+      public FileFilter getExploreCriteria()
       {
-         return subFolderCriteria;
+         return exploreCriteria;
       }
 
-      public FileFilter getFolderCriteria()
+      public FileFilter getGatherCriteria()
       {
-         return folderCriteria;
-      }
-
-      public FileFilter getFileCriteria()
-      {
-         return fileCriteria;
+         return gatherCriteria;
       }
 
       public int getMaxDepth()
@@ -298,17 +214,7 @@ maxFinds = maxDepth = -1;</pre></code>
          return maxFinds;
       }
 
-      public boolean isFindFolders()
-      {
-         return findFolders;
-      }
-
-      public boolean isFindFiles()
-      {
-         return findFiles;
-      }
-
-      public File getRootFolder()
+      public Path getRootFolder()
       {
          return rootFolder;
       }
@@ -317,19 +223,14 @@ maxFinds = maxDepth = -1;</pre></code>
    //**************************************************************************
    //Rest of file is generated getters
    //**************************************************************************
-   public FileFilter getSubFolderCriteria()
+   public FileFilter getExploreCriteria()
    {
-      return subFolderCriteria;
+      return exploreCriteria;
    }
 
-   public FileFilter getFolderCriteria()
+   public FileFilter getGatherCriteria()
    {
-      return folderCriteria;
-   }
-
-   public FileFilter getFileCriteria()
-   {
-      return fileCriteria;
+      return gatherCriteria;
    }
 
    public int getMaxDepth()
@@ -342,17 +243,7 @@ maxFinds = maxDepth = -1;</pre></code>
       return maxFinds;
    }
 
-   public boolean isFindFolders()
-   {
-      return findFolders;
-   }
-
-   public boolean isFindFiles()
-   {
-      return findFiles;
-   }
-
-   public File getRootFolder()
+   public Path getRootFolder()
    {
       return rootFolder;
    }
