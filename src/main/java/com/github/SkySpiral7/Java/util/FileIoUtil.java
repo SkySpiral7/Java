@@ -23,8 +23,10 @@ import java.util.Objects;
  * This is a simple utility for reading and writing files.
  * Simple to use but none are efficient.
  *
- * @see #writeToFile(File, String, Charset, boolean)
+ * @see #writeToFile(File, String)
+ * @see #writeToFile(File, byte[])
  * @see #readTextFile(File, Charset)
+ * @see #readBinaryFile(File)
  */
 public enum FileIoUtil
       //I tested this class by hand since a UT would have to duplicate the code
@@ -36,7 +38,9 @@ public enum FileIoUtil
     * @param newContents the file will contain only this UTF-8 string
     *
     * @throws RuntimeException of FileNotFoundException or IOException
-    * @see #writeToFile(File, String, Charset, boolean)
+    * @see #writeToFile(File, byte[])
+    * @see #appendToFile(File, String)
+    * @see #writeToFile(File, String, Charset)
     */
    public static void writeToFile(final File targetFile, final String newContents)
    {
@@ -45,10 +49,13 @@ public enum FileIoUtil
 
    /**
     * @param targetFile  writes to this file (keeping previous content)
-    * @param newContents the file will gain this UTF-8 string (after current contents)
+    * @param newContents the file will gain this UTF-8 string (after current contents).
+    *                    File may become unreadable if the rest of the file isn't UTF-8.
     *
     * @throws RuntimeException of FileNotFoundException or IOException
-    * @see #writeToFile(File, String, Charset, boolean)
+    * @see #appendToFile(File, byte[])
+    * @see #writeToFile(File, String)
+    * @see #appendToFile(File, String, Charset)
     */
    public static void appendToFile(final File targetFile, final String newContents)
    {
@@ -57,16 +64,37 @@ public enum FileIoUtil
 
    /**
     * This method opens the file, writes (which may create it), then closes the file.
-    * Therefore it is inefficient to call this more than once when appending.
     *
-    * @param targetFile  writes to this file
-    * @param newContents the string contents to be written
+    * @param targetFile  writes to this file (clearing previous content)
+    * @param newContents the file will contain only this UTF-8 string
     * @param encoding    the character encoding to write to the file in
-    * @param willAppend  true if the current file contents should be kept
     *
     * @throws RuntimeException of FileNotFoundException or IOException
+    * @see #writeToFile(File, String)
     */
-   public static void writeToFile(final File targetFile, final String newContents, final Charset encoding, final boolean willAppend)
+   public static void writeToFile(final File targetFile, final String newContents, final Charset encoding)
+   {
+      FileIoUtil.writeToFile(targetFile, newContents, encoding, false);
+   }
+
+   /**
+    * This method opens the file, writes (which may create it), then closes the file.
+    * Therefore it is inefficient to call this more than once when appending.
+    *
+    * @param targetFile  writes to this file (keeping previous content)
+    * @param newContents the file will gain this UTF-8 string (after current contents)
+    * @param encoding    the character encoding to append to the file in.
+    *                    File may become unreadable if encoding is different than the rest of the file.
+    *
+    * @throws RuntimeException of FileNotFoundException or IOException
+    * @see #appendToFile(File, String)
+    */
+   public static void appendToFile(final File targetFile, final String newContents, final Charset encoding)
+   {
+      FileIoUtil.writeToFile(targetFile, newContents, encoding, true);
+   }
+
+   private static void writeToFile(final File targetFile, final String newContents, final Charset encoding, final boolean willAppend)
    {
       if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to write to a directory (" + targetFile + ")");
       Objects.requireNonNull(newContents);
@@ -84,14 +112,34 @@ public enum FileIoUtil
 
    /**
     * This method opens the file, writes (which may create it), then closes the file.
+    *
+    * @param targetFile  writes to this file
+    * @param newContents the binary contents to be written
+    *
+    * @throws RuntimeException of FileNotFoundException or IOException
+    * @see #writeToFile(File, String)
+    */
+   public static void writeToFile(final File targetFile, final byte[] newContents)
+   {
+      FileIoUtil.writeToFile(targetFile, newContents, false);
+   }
+
+   /**
+    * This method opens the file, writes (which may create it), then closes the file.
     * Therefore it is inefficient to call this more than once when appending.
     *
     * @param targetFile  writes to this file
     * @param newContents the binary contents to be written
     *
     * @throws RuntimeException of FileNotFoundException or IOException
+    * @see #appendToFile(File, String)
     */
-   public static void writeToFile(final File targetFile, final byte[] newContents, final boolean willAppend)
+   public static void appendToFile(final File targetFile, final byte[] newContents)
+   {
+      FileIoUtil.writeToFile(targetFile, newContents, true);
+   }
+
+   private static void writeToFile(final File targetFile, final byte[] newContents, final boolean willAppend)
    {
       if (targetFile.isDirectory()) throw new IllegalArgumentException("It is not possible to a directory (" + targetFile + ")");
       Objects.requireNonNull(newContents);
@@ -190,7 +238,7 @@ public enum FileIoUtil
       final byte[] result = new byte[(int) targetFile.length()];
       try
       {
-         try (final InputStream input = new BufferedInputStream(new FileInputStream(targetFile));)
+         try (final InputStream input = new BufferedInputStream(new FileInputStream(targetFile)))
          {
             int totalBytesRead = 0;
             while (totalBytesRead < result.length)
