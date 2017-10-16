@@ -474,7 +474,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public int intValue()
    {
-      if (!this.isFinite()) throw new ArithmeticException(this.toString() + " can't be even partially represented as an int.");
+      if (!this.isFinite()) throw new ArithmeticException(this + " can't be even partially represented as an int.");
       final int intValue =
             magnitudeHead.getData().intValue() & Integer.MAX_VALUE;  //drop the sign bit (can't use Math.abs because the nodes are unsigned)
       if (isNegative) return -intValue;
@@ -493,7 +493,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public long longValue()
    {
-      if (!this.isFinite()) throw new ArithmeticException(this.toString() + " can't be even partially represented as a long.");
+      if (!this.isFinite()) throw new ArithmeticException(this + " can't be even partially represented as a long.");
 
       long longValue = Integer.toUnsignedLong(magnitudeHead.getData().intValue());
       if (magnitudeHead.getNext() != null)
@@ -516,7 +516,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public long longValueExact()
    {
-      if (!this.isFinite()) throw new ArithmeticException(this.toString() + " can't be represented as a long.");
+      if (!this.isFinite()) throw new ArithmeticException(this + " can't be represented as a long.");
       if (magnitudeHead.getNext() != null && magnitudeHead.getNext().getNext() != null)
          throw new ArithmeticException("This InfiniteInteger is too large to be represented as a long.");
       //if there are too many nodes then the number is too large
@@ -529,7 +529,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public BigInteger bigIntegerValue()
    {
-      if (!this.isFinite()) throw new ArithmeticException(this.toString() + " can't be even partially represented as a BigInteger.");
+      if (!this.isFinite()) throw new ArithmeticException(this + " can't be even partially represented as a BigInteger.");
       // TODO: method stubs
       return null;  //after exact is done, copy and paste the code but return the previous result instead of throwing
    }
@@ -546,7 +546,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public BigInteger bigIntegerValueExact()
    {
-      if (!this.isFinite()) throw new ArithmeticException(this.toString() + " can't be represented as a BigInteger.");
+      if (!this.isFinite()) throw new ArithmeticException(this + " can't be represented as a BigInteger.");
 
       try
       {
@@ -679,7 +679,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public ReadOnlyListIterator<Integer> magnitudeIterator()
    {
-      if (!this.isFinite()) throw new UnsupportedOperationException(this.toString() + " does not have nodes.");
+      if (!this.isFinite()) throw new UnsupportedOperationException(this + " does not have nodes.");
       return new ReadOnlyListIterator<>(new DequeNodeIterator.IndexAgnosticValueIterator<>(magnitudeHead));
    }
 
@@ -738,7 +738,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
 
       //the rest is for if both positive or both negative
       long sum, valueRemaining = Math.abs(value);
-      ListIterator<DequeNode<Integer>> thisIterator = new DequeNodeIterator.IndexAgnosticDequeIterator<Integer>(this.magnitudeHead);
+      ListIterator<DequeNode<Integer>> thisIterator = new DequeNodeIterator.IndexAgnosticDequeIterator<>(this.magnitudeHead);
       DequeNode<Integer> thisCursor = null;
       int lowValue, highValue;
       while (thisIterator.hasNext())
@@ -866,7 +866,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
 
       //this is greater than value
       long difference, valueRemaining = value;
-      final ListIterator<DequeNode<Integer>> thisIterator = new DequeNodeIterator.IndexAgnosticDequeIterator<Integer>(this.magnitudeHead);
+      final ListIterator<DequeNode<Integer>> thisIterator = new DequeNodeIterator.IndexAgnosticDequeIterator<>(this.magnitudeHead);
       DequeNode<Integer> thisCursor = null;
       int lowValue, highValue;
       boolean borrow = false;
