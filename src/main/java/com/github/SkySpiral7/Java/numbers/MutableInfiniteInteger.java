@@ -1,6 +1,11 @@
 package com.github.SkySpiral7.Java.numbers;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -70,8 +75,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    /**
     * Little endian: the first node is the least significant.
     */
-   protected DequeNode<Integer> magnitudeHead;
-   protected boolean isNegative;
+   transient protected DequeNode<Integer> magnitudeHead;
+   transient protected boolean isNegative;
 
    /**
     * This constructor is used to make special constants.
@@ -2182,4 +2187,33 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
       return this;
    }
 
+   private Object writeReplace() throws ObjectStreamException
+   {
+      magnitudeHead = null;
+      throw new NotSerializableException();
+   }
+
+   private Object readResolve() throws ObjectStreamException
+   {
+      magnitudeHead = null;
+      throw new NotSerializableException();
+   }
+
+   private void writeObject(final ObjectOutputStream out) throws IOException
+   {
+      magnitudeHead = null;
+      throw new NotSerializableException();
+   }
+
+   private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException
+   {
+      magnitudeHead = null;
+      throw new NotSerializableException();
+   }
+
+   private void readObjectNoData() throws ObjectStreamException
+   {
+      magnitudeHead = null;
+      throw new NotSerializableException();
+   }
 }

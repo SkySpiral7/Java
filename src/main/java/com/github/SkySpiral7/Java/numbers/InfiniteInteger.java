@@ -1,6 +1,11 @@
 package com.github.SkySpiral7.Java.numbers;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -31,7 +36,7 @@ import com.github.SkySpiral7.Java.util.BitWiseUtil;
  *
  * <p>Someone suggested I should name the class InfinInt but as much as I love puns I would like this class to be
  * taken seriously. There is very little effort put to being efficient therefore expect it to be slow.
- * This class is more of a proof of concept to show that truely infinite precision can be done.
+ * This class is more of a proof of concept to show that truly infinite precision can be done.
  * This class can logically support more than the hardware can provide. For example:
  * if this object takes 10 TB or memory and you call factorial the logic functions as normal
  * but can't finish the calculation within the next thousand years but of course memory
@@ -87,7 +92,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static final InfiniteInteger TWO = new InfiniteInteger(new MutableInfiniteInteger(2));
 
-   private final MutableInfiniteInteger baseNumber;
+   private final transient MutableInfiniteInteger baseNumber;
 
    private InfiniteInteger(final MutableInfiniteInteger baseNumber){this.baseNumber = baseNumber;}
 
@@ -1139,4 +1144,18 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
 	but there's the singletons...
 	*/
 
+   private Object writeReplace() throws ObjectStreamException
+   {throw new NotSerializableException();}
+
+   private Object readResolve() throws ObjectStreamException
+   {throw new NotSerializableException();}
+
+   private void writeObject(final ObjectOutputStream out) throws IOException
+   {throw new NotSerializableException();}
+
+   private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException
+   {throw new NotSerializableException();}
+
+   private void readObjectNoData() throws ObjectStreamException
+   {throw new NotSerializableException();}
 }

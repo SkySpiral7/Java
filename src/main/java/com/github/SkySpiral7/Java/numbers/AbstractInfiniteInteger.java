@@ -1,6 +1,11 @@
 package com.github.SkySpiral7.Java.numbers;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -118,4 +123,19 @@ public abstract class AbstractInfiniteInteger<T extends AbstractInfiniteInteger<
    public abstract String toString();
 
    public abstract void toFile(File writeToHere);
+
+   private Object writeReplace() throws ObjectStreamException
+   {throw new NotSerializableException();}
+
+   private Object readResolve() throws ObjectStreamException
+   {throw new NotSerializableException();}
+
+   private void writeObject(final ObjectOutputStream out) throws IOException
+   {throw new NotSerializableException();}
+
+   private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException
+   {throw new NotSerializableException();}
+
+   private void readObjectNoData() throws ObjectStreamException
+   {throw new NotSerializableException();}
 }
