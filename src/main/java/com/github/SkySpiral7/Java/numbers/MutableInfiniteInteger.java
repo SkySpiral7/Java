@@ -193,7 +193,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    {
       final Long[] wrappedValues = new Long[valueArray.length];
       for (int i = 0; i < valueArray.length; i++){wrappedValues[i] = Long.valueOf(valueArray[i]);}
-      return littleEndian(Arrays.asList(wrappedValues).listIterator(), isNegative);
+      return MutableInfiniteInteger.littleEndian(Arrays.asList(wrappedValues).listIterator(), isNegative);
    }
 
    /**
@@ -214,7 +214,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    {
       final Long[] wrappedValues = new Long[valueArray.length];
       for (int i = 0; i < valueArray.length; i++){wrappedValues[i] = Long.valueOf(valueArray[i]);}
-      return bigEndian(Arrays.asList(wrappedValues).listIterator(), isNegative);
+      return MutableInfiniteInteger.bigEndian(Arrays.asList(wrappedValues).listIterator(), isNegative);
    }
 
    /**
@@ -276,7 +276,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     */
    public static MutableInfiniteInteger bigEndian(final ListIterator<Long> valueIterator, final boolean isNegative)
    {
-      return littleEndian(DescendingListIterator.iterateBackwardsFromEnd(valueIterator), isNegative);
+      return MutableInfiniteInteger.littleEndian(DescendingListIterator.iterateBackwardsFromEnd(valueIterator), isNegative);
    }
 
    /**
@@ -291,7 +291,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     */
    public static MutableInfiniteInteger random(final MutableInfiniteInteger nodeCount)
    {
-      return random(nodeCount, new Random());
+      return MutableInfiniteInteger.random(nodeCount, new Random());
    }
 
    /**
@@ -308,8 +308,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     */
    public static MutableInfiniteInteger random(final MutableInfiniteInteger nodeCount, final Random random)
    {
-      if (!nodeCount.isFinite()) return NaN;
-      if (is(nodeCount, LESS_THAN, MutableInfiniteInteger.valueOf(1))) return NaN;
+      if (!nodeCount.isFinite()) return MutableInfiniteInteger.NaN;
+      if (is(nodeCount, LESS_THAN, MutableInfiniteInteger.valueOf(1))) return MutableInfiniteInteger.NaN;
 
       MutableInfiniteInteger remainingNodes = nodeCount.copy();
       MutableInfiniteInteger result = new MutableInfiniteInteger(0);
@@ -631,7 +631,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    {
       if (n.equals(1)) return a.copy().power(b);
       if (b.equals(1)) return a.copy();
-      return arrowNotation(a.copy(), n.copy().subtract(1), arrowNotation(a.copy(), n.copy(), b.copy().subtract(1)));
+      return MutableInfiniteInteger.arrowNotation(a.copy(), n.copy().subtract(1), MutableInfiniteInteger.arrowNotation(a.copy(), n.copy(), b.copy().subtract(1)));
    }
 
    /**
@@ -642,7 +642,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    private static MutableInfiniteInteger grahamFunction(final MutableInfiniteInteger k)
    {
       if (k.equals(0)) return new MutableInfiniteInteger(4);
-      return arrowNotation(new MutableInfiniteInteger(3), grahamFunction(k.copy().subtract(1)), new MutableInfiniteInteger(3));
+      return MutableInfiniteInteger.arrowNotation(new MutableInfiniteInteger(3), MutableInfiniteInteger.grahamFunction(k.copy().subtract(1)), new MutableInfiniteInteger(3));
    }
 
    /**
@@ -662,7 +662,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Deprecated
    public static MutableInfiniteInteger calculateGrahamsnumber()
    {
-      return grahamFunction(new MutableInfiniteInteger(64));
+      return MutableInfiniteInteger.grahamFunction(new MutableInfiniteInteger(64));
    }
 
    /**
@@ -797,7 +797,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
       if (isNegative && !value.isNegative) return set(value.copy().subtract(this.abs()));
 
       //the rest is for if both positive or both negative
-      addAbove(this.magnitudeHead, value);
+      MutableInfiniteInteger.addAbove(this.magnitudeHead, value);
       //isNegative is already correct for positive or negative
       return this;
    }
@@ -932,9 +932,9 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
       if (this.isNegative && value.isNegative) return set(value.copy().abs().subtract(this.abs()));
 
       //the rest is for if both positive
-      if (this == POSITIVE_INFINITY && value == POSITIVE_INFINITY) return NaN;
-      if (this == POSITIVE_INFINITY) return this;
-      if (value == POSITIVE_INFINITY) return NEGATIVE_INFINITY;
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY) && value.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return MutableInfiniteInteger.NaN;
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return this;
+      if (value.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return MutableInfiniteInteger.NEGATIVE_INFINITY;
       if (this.equals(value)) return set(new MutableInfiniteInteger(0));
       if (is(this, LESS_THAN, value)) return set(value.copy().subtract(this).negate());
 
@@ -994,7 +994,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public MutableInfiniteInteger multiply(final long value)
    {
-      if (value == 0 && this.isInfinite()) return NaN;
+      if (value == 0 && this.isInfinite()) return MutableInfiniteInteger.NaN;
       if (!this.isFinite() || value == 1) return this;
       if (this.equals(0) || value == 0) return set(new MutableInfiniteInteger(0));
       if (value == -1) return this.negate();
@@ -1013,7 +1013,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
       {
          if (result.magnitudeHead.getNext() == null)
             DequeNode.Factory.createNodeAfter(result.magnitudeHead, 0);  //TODO: will this ever happen?
-         addAbove(result.magnitudeHead.getNext(), this.internalMultiply(highValue));
+         MutableInfiniteInteger.addAbove(result.magnitudeHead.getNext(), this.internalMultiply(highValue));
       }
       result.isNegative = resultIsNegative;
 
@@ -1081,8 +1081,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public MutableInfiniteInteger multiply(final MutableInfiniteInteger value)
    {
-      if (value.equals(0) && this.isInfinite()) return NaN;
-      if (this.equals(0) && value.isInfinite()) return NaN;
+      if (value.equals(0) && this.isInfinite()) return MutableInfiniteInteger.NaN;
+      if (this.equals(0) && value.isInfinite()) return MutableInfiniteInteger.NaN;
       if (!this.isFinite() || value.equals(1)) return this;
       if (!value.isFinite() || this.equals(1)) return set(value.copy());
       if (this.equals(0) || value.equals(0)) return set(new MutableInfiniteInteger(0));
@@ -1096,7 +1096,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
 
       while (!valueRemaining.equals(0))
       {
-         addAbove(resultCursor, this.internalMultiply(valueRemaining.magnitudeHead.getData().intValue()));
+         MutableInfiniteInteger.addAbove(resultCursor, this.internalMultiply(valueRemaining.magnitudeHead.getData().intValue()));
          valueRemaining = valueRemaining.divideByPowerOf2DropRemainder(32);
          if (resultCursor.getNext() == null) resultCursor = DequeNode.Factory.createNodeAfter(resultCursor, 0);
          else resultCursor = resultCursor.getNext();
@@ -1231,10 +1231,10 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public IntegerQuotient<MutableInfiniteInteger> divide(final MutableInfiniteInteger value)
    {
-      if (this.isNaN() || value.isNaN() || value.equals(0)) return new IntegerQuotient<>(NaN, NaN);
-      if (!this.isFinite() && !value.isFinite()) return new IntegerQuotient<>(NaN, NaN);
-      if (!this.isFinite()) return new IntegerQuotient<>(this, NaN);
-      if (!value.isFinite()) return new IntegerQuotient<>(new MutableInfiniteInteger(0), NaN);
+      if (this.isNaN() || value.isNaN() || value.equals(0)) return new IntegerQuotient<>(MutableInfiniteInteger.NaN, MutableInfiniteInteger.NaN);
+      if (!this.isFinite() && !value.isFinite()) return new IntegerQuotient<>(MutableInfiniteInteger.NaN, MutableInfiniteInteger.NaN);
+      if (!this.isFinite()) return new IntegerQuotient<>(this, MutableInfiniteInteger.NaN);
+      if (!value.isFinite()) return new IntegerQuotient<>(new MutableInfiniteInteger(0), MutableInfiniteInteger.NaN);
 
       if (value.equals(1)) return new IntegerQuotient<>(this.copy(), new MutableInfiniteInteger(0));
       if (value.equals(-1)) return new IntegerQuotient<>(this.copy().negate(), new MutableInfiniteInteger(0));
@@ -1552,8 +1552,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public MutableInfiniteInteger factorial()
    {
-      if (this.isNegative || this == NaN) return NaN;  //factorial is not defined for negative numbers
-      if (this == POSITIVE_INFINITY) return this;  //-Infinity is covered above
+      if (this.isNegative || this.equals(MutableInfiniteInteger.NaN)) return MutableInfiniteInteger.NaN;  //factorial is not defined for negative numbers
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return this;  //-Infinity is covered above
       if (this.equals(0) || this.equals(1)) return set(MutableInfiniteInteger.valueOf(1));
 
       MutableInfiniteInteger result = this;
@@ -1625,10 +1625,10 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    {
       MutableInfiniteInteger thisRemaining = this.copy().abs(), otherRemaining = otherValue.copy().abs();
 
-      if (!thisRemaining.isFinite() || !otherRemaining.isFinite()) return NaN;
+      if (!thisRemaining.isFinite() || !otherRemaining.isFinite()) return MutableInfiniteInteger.NaN;
       if (thisRemaining.equals(otherRemaining)) return thisRemaining.copy();
       if (thisRemaining.equals(1) || otherRemaining.equals(1)) return MutableInfiniteInteger.valueOf(1);
-      if (thisRemaining.equals(0) && otherRemaining.equals(0)) return POSITIVE_INFINITY;
+      if (thisRemaining.equals(0) && otherRemaining.equals(0)) return MutableInfiniteInteger.POSITIVE_INFINITY;
       if (thisRemaining.equals(0)) return otherRemaining.copy();
       if (otherRemaining.equals(0)) return thisRemaining.copy();
 
@@ -1699,8 +1699,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     */
    protected MutableInfiniteInteger sqrtCeil()
    {
-      if (this.isNaN() || this.isNegative) return NaN;
-      if (this == POSITIVE_INFINITY) return this;
+      if (this.isNaN() || this.isNegative) return MutableInfiniteInteger.NaN;
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return this;
 
       //if fits into signed long then delegate
       if (this.equals(this.longValue()))
@@ -1795,7 +1795,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    public MutableInfiniteInteger abs()
    {
       if (!isNegative || isNaN()) return this;  //includes this == 0 and +Infinity
-      if (this == NEGATIVE_INFINITY) return POSITIVE_INFINITY;
+      if (this.equals(MutableInfiniteInteger.NEGATIVE_INFINITY)) return MutableInfiniteInteger.POSITIVE_INFINITY;
       isNegative = false;
       return this;
    }
@@ -1809,8 +1809,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    public MutableInfiniteInteger negate()
    {
       if (isNaN() || this.equals(0)) return this;  //0 is a special case because -0 == 0
-      if (this == NEGATIVE_INFINITY) return POSITIVE_INFINITY;
-      if (this == POSITIVE_INFINITY) return NEGATIVE_INFINITY;
+      if (this.equals(MutableInfiniteInteger.NEGATIVE_INFINITY)) return MutableInfiniteInteger.POSITIVE_INFINITY;
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return MutableInfiniteInteger.NEGATIVE_INFINITY;
       isNegative = !isNegative;
       return this;
    }
@@ -1823,7 +1823,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    public byte signum()
    {
       if (isNegative) return -1;
-      if (this.equals(0) || this == NaN) return 0;
+      if (this.equals(0) || this.equals(MutableInfiniteInteger.NaN)) return 0;
       return 1;
    }
 
@@ -1838,7 +1838,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     * @see #NaN
     */
    @Override
-   public boolean isNaN(){return this == NaN;}
+   public boolean isNaN(){return this == MutableInfiniteInteger.NaN;}
 
    /**
     * Compares this InfiniteInteger to both positive and negative infinity.
@@ -1849,7 +1849,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
     * @see #NEGATIVE_INFINITY
     */
    @Override
-   public boolean isInfinite(){return (this == POSITIVE_INFINITY || this == NEGATIVE_INFINITY);}
+   public boolean isInfinite(){return (this == MutableInfiniteInteger.POSITIVE_INFINITY || this == MutableInfiniteInteger.NEGATIVE_INFINITY);}
 
    /**
     * Compares this InfiniteInteger to &plusmn;&infin; and NaN (returns false if this is any of them).
@@ -1907,7 +1907,8 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    public boolean equals(final Object other)
    {
       if (other == null) return false;
-      if (other instanceof MutableInfiniteInteger) return this.equals((MutableInfiniteInteger) other);  //checks this == other
+      if (this == other) return true;
+      if (other instanceof MutableInfiniteInteger) return this.equals((MutableInfiniteInteger) other);
       if (other instanceof BigInteger) return this.equals(MutableInfiniteInteger.valueOf((BigInteger) other));
       if (!this.isFinite()) return false;  //TODO: actually compare specials to floating point's
       //TODO: floating point can be larger than long:
@@ -1987,11 +1988,11 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    public int compareTo(final MutableInfiniteInteger other)
    {
       if (this == other) return THIS_EQUAL;  //recall that special values are singletons
-      if (this == NaN || other == NEGATIVE_INFINITY) return THIS_GREATER;
-      if (this == NEGATIVE_INFINITY || other == NaN) return THIS_LESSER;
+      if (this == MutableInfiniteInteger.NaN || other == MutableInfiniteInteger.NEGATIVE_INFINITY) return THIS_GREATER;
+      if (this == MutableInfiniteInteger.NEGATIVE_INFINITY || other == MutableInfiniteInteger.NaN) return THIS_LESSER;
       //+Infinity is only greater if NaN isn't involved
-      if (this == POSITIVE_INFINITY) return THIS_GREATER;
-      if (other == POSITIVE_INFINITY) return THIS_LESSER;
+      if (this == MutableInfiniteInteger.POSITIVE_INFINITY) return THIS_GREATER;
+      if (other == MutableInfiniteInteger.POSITIVE_INFINITY) return THIS_LESSER;
 
       if (isNegative && !other.isNegative) return THIS_LESSER;
       if (!isNegative && other.isNegative) return THIS_GREATER;  //also covers if this.equals(0)
@@ -2065,7 +2066,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public int hashCode()
    {
-      if (this == NaN) return Integer.MIN_VALUE;  //so that 0 and NaN will not have a collision
+      if (this == MutableInfiniteInteger.NaN) return Integer.MIN_VALUE;  //so that 0 and NaN will not have a collision
       if (this.isInfinite()) return (Integer.MAX_VALUE * this.signum());  //to prevent collision with +/-1
       DequeNode<Integer> cursor = magnitudeHead;
       int hash = Boolean.hashCode(isNegative);
@@ -2080,9 +2081,9 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public String toString()
    {
-      if (this == POSITIVE_INFINITY) return "+Infinity";  //it doesn't seem like \u221E works
-      if (this == NEGATIVE_INFINITY) return "-Infinity";
-      if (this == NaN) return "NaN";
+      if (this.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return "+Infinity";  //it doesn't seem like \u221E works
+      if (this.equals(MutableInfiniteInteger.NEGATIVE_INFINITY)) return "-Infinity";
+      if (this.equals(MutableInfiniteInteger.NaN)) return "NaN";
       if (this.equals(0)) return "0";
       //method stub
       //BigInteger > string max
@@ -2111,6 +2112,7 @@ public final class MutableInfiniteInteger extends AbstractInfiniteInteger<Mutabl
    @Override
    public void toFile(final File writeToHere)
    {
+      throw new UnsupportedOperationException("Not yet implemented");
       // method stub. it can always fit into a file (assuming the JVM and OS had no max file size which they do)
    }
    //I could implement writeObject and readObject but the JVM default serialization works fine.

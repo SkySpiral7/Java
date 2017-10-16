@@ -105,7 +105,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger valueOf(final long value)
    {
-      return valueOf(MutableInfiniteInteger.valueOf(value));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.valueOf(value));
    }
 
    /**
@@ -118,7 +118,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger valueOf(final BigInteger value)
    {
-      return valueOf(MutableInfiniteInteger.valueOf(value));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.valueOf(value));
    }
 
    /**
@@ -132,13 +132,13 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger valueOf(final MutableInfiniteInteger value)
    {
-      if (value.isNaN()) return NaN;
-      if (value == MutableInfiniteInteger.POSITIVE_INFINITY) return POSITIVE_INFINITY;
-      if (value == MutableInfiniteInteger.NEGATIVE_INFINITY) return NEGATIVE_INFINITY;
+      if (value.isNaN()) return InfiniteInteger.NaN;
+      if (value.equals(MutableInfiniteInteger.POSITIVE_INFINITY)) return InfiniteInteger.POSITIVE_INFINITY;
+      if (value.equals(MutableInfiniteInteger.NEGATIVE_INFINITY)) return InfiniteInteger.NEGATIVE_INFINITY;
 
-      if (value.equals(0)) return ZERO;
-      if (value.equals(1)) return ONE;
-      if (value.equals(2)) return TWO;
+      if (value.equals(0)) return InfiniteInteger.ZERO;
+      if (value.equals(1)) return InfiniteInteger.ONE;
+      if (value.equals(2)) return InfiniteInteger.TWO;
 
       return new InfiniteInteger(value.copy());
    }
@@ -170,7 +170,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger littleEndian(final long[] valueArray, final boolean isNegative)
    {
-      return valueOf(MutableInfiniteInteger.littleEndian(valueArray, isNegative));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.littleEndian(valueArray, isNegative));
    }
 
    /**
@@ -189,7 +189,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger bigEndian(final long[] valueArray, final boolean isNegative)
    {
-      return valueOf(MutableInfiniteInteger.bigEndian(valueArray, isNegative));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.bigEndian(valueArray, isNegative));
    }
 
    /**
@@ -210,7 +210,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger littleEndian(final Iterator<Long> valueIterator, final boolean isNegative)
    {
-      return valueOf(MutableInfiniteInteger.littleEndian(valueIterator, isNegative));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.littleEndian(valueIterator, isNegative));
    }
 
    /**
@@ -233,7 +233,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static InfiniteInteger bigEndian(final ListIterator<Long> valueIterator, final boolean isNegative)
    {
-      return valueOf(MutableInfiniteInteger.bigEndian(valueIterator, isNegative));
+      return InfiniteInteger.valueOf(MutableInfiniteInteger.bigEndian(valueIterator, isNegative));
    }
 
    /**
@@ -247,9 +247,9 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    public static Stream<InfiniteInteger> streamAllIntegers()
    {
-      return Stream.iterate(ZERO, (InfiniteInteger previous) ->
+      return Stream.iterate(InfiniteInteger.ZERO, (InfiniteInteger previous) ->
       {
-         if (previous == ZERO) return InfiniteInteger.valueOf(1);
+         if (previous.equals(InfiniteInteger.ZERO)) return InfiniteInteger.valueOf(1);
          if (previous.baseNumber.isNegative) return InfiniteInteger.valueOf(previous.baseNumber.copy().abs().add(1));
          return previous.negate();
       });
@@ -496,7 +496,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger add(final long value)
    {
-      return valueOf(baseNumber.copy().add(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().add(value));
    }
 
    /**
@@ -508,7 +508,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger add(final BigInteger value)
    {
-      return valueOf(baseNumber.copy().add(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().add(value));
    }
 
    /**
@@ -523,7 +523,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger add(final InfiniteInteger value)
    {
-      return valueOf(baseNumber.copy().add(value.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().add(value.baseNumber));
    }
 
    /**
@@ -540,7 +540,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger subtract(final long value)
    {
-      return valueOf(baseNumber.copy().subtract(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().subtract(value));
    }
 
    /**
@@ -552,7 +552,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger subtract(final BigInteger value)
    {
-      return valueOf(baseNumber.copy().subtract(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().subtract(value));
    }
 
    /**
@@ -568,7 +568,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger subtract(final InfiniteInteger value)
    {
-      return valueOf(baseNumber.copy().subtract(value.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().subtract(value.baseNumber));
    }
 
    /**
@@ -586,7 +586,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiply(final long value)
    {
-      return valueOf(baseNumber.copy().multiply(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiply(value));
    }
 
    /**
@@ -598,7 +598,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiply(final BigInteger value)
    {
-      return valueOf(baseNumber.copy().multiply(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiply(value));
    }
 
    /**
@@ -614,7 +614,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiply(final InfiniteInteger value)
    {
-      return valueOf(baseNumber.copy().multiply(value.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiply(value.baseNumber));
    }
 
    /**
@@ -627,7 +627,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiplyByPowerOf2(final long exponent)
    {
-      return valueOf(baseNumber.copy().multiplyByPowerOf2(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiplyByPowerOf2(exponent));
    }
 
    /**
@@ -639,7 +639,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiplyByPowerOf2(final BigInteger exponent)
    {
-      return valueOf(baseNumber.copy().multiplyByPowerOf2(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiplyByPowerOf2(exponent));
    }
 
    /**
@@ -664,7 +664,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger multiplyByPowerOf2(final InfiniteInteger exponent)
    {
-      return valueOf(baseNumber.copy().multiplyByPowerOf2(exponent.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().multiplyByPowerOf2(exponent.baseNumber));
    }
 
    @Override
@@ -686,14 +686,14 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    public IntegerQuotient<InfiniteInteger> divide(final InfiniteInteger value)
    {
       final IntegerQuotient<MutableInfiniteInteger> mutableAnswer = baseNumber.copy().divide(value.baseNumber);
-      return new IntegerQuotient<>(valueOf(mutableAnswer.getWholeResult()), valueOf(mutableAnswer.getRemainder()));
+      return new IntegerQuotient<>(InfiniteInteger.valueOf(mutableAnswer.getWholeResult()), InfiniteInteger.valueOf(mutableAnswer.getRemainder()));
    }
 
    //aka divideReturnWhole
    @Override
    public InfiniteInteger divideDropRemainder(final long value)
    {
-      return valueOf(baseNumber.copy().divideDropRemainder(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideDropRemainder(value));
    }
 
    /**
@@ -705,13 +705,13 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger divideDropRemainder(final BigInteger value)
    {
-      return valueOf(baseNumber.copy().divideDropRemainder(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideDropRemainder(value));
    }
 
    @Override
    public InfiniteInteger divideDropRemainder(final InfiniteInteger value)
    {
-      return valueOf(baseNumber.copy().divideDropRemainder(value.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideDropRemainder(value.baseNumber));
    }
 
    /**
@@ -724,7 +724,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger divideByPowerOf2DropRemainder(final long exponent)
    {
-      return valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent));
    }
 
    /**
@@ -736,7 +736,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger divideByPowerOf2DropRemainder(final BigInteger exponent)
    {
-      return valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent));
    }
 
    /**
@@ -762,14 +762,14 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger divideByPowerOf2DropRemainder(final InfiniteInteger exponent)
    {
-      return valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideByPowerOf2DropRemainder(exponent.baseNumber));
    }
 
    //aka remainder, divideDropWhole, divideReturnRemainder
    @Override
    public InfiniteInteger divideReturnRemainder(final long value)
    {
-      return valueOf(baseNumber.copy().divideReturnRemainder(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideReturnRemainder(value));
    }
 
    /**
@@ -781,19 +781,19 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger divideReturnRemainder(final BigInteger value)
    {
-      return valueOf(baseNumber.copy().divideReturnRemainder(value));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideReturnRemainder(value));
    }
 
    @Override
    public InfiniteInteger divideReturnRemainder(final InfiniteInteger value)
    {
-      return valueOf(baseNumber.copy().divideReturnRemainder(value.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().divideReturnRemainder(value.baseNumber));
    }
 
    @Override
    public InfiniteInteger power(final long exponent)
    {
-      return valueOf(baseNumber.copy().power(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().power(exponent));
    }
 
    /**
@@ -805,7 +805,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger power(final BigInteger exponent)
    {
-      return valueOf(baseNumber.copy().power(exponent));
+      return InfiniteInteger.valueOf(baseNumber.copy().power(exponent));
    }
 
    //BigInt is wrong: 0^0 is NaN but it returns 1. And 1^(-2) is 1 but it throws
@@ -854,21 +854,21 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    protected static InfiniteInteger powerSpecialLookUp(final InfiniteInteger base, final InfiniteInteger exponent)
    {
-      if (base.isNaN() || exponent.isNaN()) return NaN;
+      if (base.isNaN() || exponent.isNaN()) return InfiniteInteger.NaN;
       if (exponent.equals(1)) return base;  //always true
       //TODO: test all these special cases of pow
 
-      final byte baseIndex = powerSpecialIndex(base);
-      final byte exponentIndex = powerSpecialIndex(exponent);  //is never 1 due to above if check
-      final InfiniteInteger tableValue = powerSpecialCaseTable[baseIndex][exponentIndex];
+      final byte baseIndex = InfiniteInteger.powerSpecialIndex(base);
+      final byte exponentIndex = InfiniteInteger.powerSpecialIndex(exponent);  //is never 1 due to above if check
+      final InfiniteInteger tableValue = InfiniteInteger.powerSpecialCaseTable[baseIndex][exponentIndex];
 
       if (tableValue != null) return tableValue;
 
-      if (base == NEGATIVE_INFINITY)
+      if (base.equals(InfiniteInteger.NEGATIVE_INFINITY))
       {
          //exponent.isFinite by this point (exponentIndex == 5 for X)
-         if (BitWiseUtil.isEven(exponent.intValue())) return POSITIVE_INFINITY;
-         return NEGATIVE_INFINITY;
+         if (BitWiseUtil.isEven(exponent.intValue())) return InfiniteInteger.POSITIVE_INFINITY;
+         return InfiniteInteger.NEGATIVE_INFINITY;
       }
 
       //baseIndex == 4 or 5 and exponentIndex == 4 or 5 for -X or X. in all 4 cases return null
@@ -885,10 +885,10 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     */
    protected static byte powerSpecialIndex(final InfiniteInteger value)
    {
-      if (value == ZERO) return 0;
-      if (value == ONE) return 1;
-      if (value == POSITIVE_INFINITY) return 2;
-      if (value == NEGATIVE_INFINITY) return 3;
+      if (value.equals(InfiniteInteger.ZERO)) return 0;
+      if (value.equals(InfiniteInteger.ONE)) return 1;
+      if (value.equals(InfiniteInteger.POSITIVE_INFINITY)) return 2;
+      if (value.equals(InfiniteInteger.NEGATIVE_INFINITY)) return 3;
       if (value.baseNumber.isNegative) return 4;
       return 5;
    }
@@ -908,7 +908,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger power(final InfiniteInteger exponent)
    {
-      return valueOf(baseNumber.copy().power(exponent.baseNumber));
+      return InfiniteInteger.valueOf(baseNumber.copy().power(exponent.baseNumber));
    }
 
    /**
@@ -924,7 +924,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger selfPower()
    {
-      return valueOf(baseNumber.copy().selfPower());
+      return InfiniteInteger.valueOf(baseNumber.copy().selfPower());
    }
 
    /**
@@ -941,7 +941,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger factorial()
    {
-      return valueOf(baseNumber.copy().factorial());
+      return InfiniteInteger.valueOf(baseNumber.copy().factorial());
    }
 
    /**
@@ -954,7 +954,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger abs()
    {
-      return valueOf(baseNumber.copy().abs());
+      return InfiniteInteger.valueOf(baseNumber.copy().abs());
    }
 
    /**
@@ -965,7 +965,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public InfiniteInteger negate()
    {
-      return valueOf(baseNumber.copy().negate());
+      return InfiniteInteger.valueOf(baseNumber.copy().negate());
    }
 
    /**
@@ -986,7 +986,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     * @see #NaN
     */
    @Override
-   public boolean isNaN(){return this == NaN;}
+   public boolean isNaN(){return this == InfiniteInteger.NaN;}
 
    /**
     * Compares this InfiniteInteger to both positive and negative infinity.
@@ -997,7 +997,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
     * @see #NEGATIVE_INFINITY
     */
    @Override
-   public boolean isInfinite(){return (this == POSITIVE_INFINITY || this == NEGATIVE_INFINITY);}
+   public boolean isInfinite(){return (this == InfiniteInteger.POSITIVE_INFINITY || this == InfiniteInteger.NEGATIVE_INFINITY);}
 
    /**
     * Compares this InfiniteInteger to &plusmn;&infin; and NaN (returns false of this is any of them).
@@ -1135,6 +1135,7 @@ public final class InfiniteInteger extends AbstractInfiniteInteger<InfiniteInteg
    @Override
    public void toFile(final File writeToHere)
    {
+      throw new UnsupportedOperationException("Not yet implemented");
       // method stub it can always fit
    }
     /*I could implement writeObject and readObject but the JVM default serialization works fine.
