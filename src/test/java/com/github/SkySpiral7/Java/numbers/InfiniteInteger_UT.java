@@ -39,8 +39,8 @@ public class InfiniteInteger_UT
       assertTrue(is(InfiniteInteger.ZERO, EQUAL_TO, InfiniteInteger.ZERO));
 
       //use hamcrest for rest to get a more meaningful failure message
-      assertThat(InfiniteInteger.POSITIVE_INFINITITY, greaterThan(InfiniteInteger.ZERO));
-      assertThat(InfiniteInteger.NEGATIVE_INFINITITY, lessThan(InfiniteInteger.ZERO));
+      assertThat(InfiniteInteger.POSITIVE_INFINITY, greaterThan(InfiniteInteger.ZERO));
+      assertThat(InfiniteInteger.NEGATIVE_INFINITY, lessThan(InfiniteInteger.ZERO));
    }
 
    @Test
@@ -57,13 +57,13 @@ public class InfiniteInteger_UT
    public void fastPaths()
    {
       //TODO: more fast paths but move them into each other test
-      assertSame(InfiniteInteger.POSITIVE_INFINITITY, InfiniteInteger.POSITIVE_INFINITITY.add(12));
-      assertSame(InfiniteInteger.NEGATIVE_INFINITITY, InfiniteInteger.NEGATIVE_INFINITITY.add(12));
+      assertSame(InfiniteInteger.POSITIVE_INFINITY, InfiniteInteger.POSITIVE_INFINITY.add(12));
+      assertSame(InfiniteInteger.NEGATIVE_INFINITY, InfiniteInteger.NEGATIVE_INFINITY.add(12));
       assertSame(InfiniteInteger.NaN, InfiniteInteger.NaN.add(12));
       assertSame(InfiniteInteger.ZERO, InfiniteInteger.valueOf(0));
 
-      assertSame(InfiniteInteger.POSITIVE_INFINITITY, InfiniteInteger.POSITIVE_INFINITITY.add(BigInteger.TEN));
-      assertSame(InfiniteInteger.NEGATIVE_INFINITITY, InfiniteInteger.NEGATIVE_INFINITITY.add(BigInteger.TEN));
+      assertSame(InfiniteInteger.POSITIVE_INFINITY, InfiniteInteger.POSITIVE_INFINITY.add(BigInteger.TEN));
+      assertSame(InfiniteInteger.NEGATIVE_INFINITY, InfiniteInteger.NEGATIVE_INFINITY.add(BigInteger.TEN));
       assertSame(InfiniteInteger.NaN, InfiniteInteger.NaN.add(BigInteger.TEN));
       assertSame(InfiniteInteger.ZERO, InfiniteInteger.valueOf(BigInteger.ZERO));
 

@@ -138,22 +138,22 @@ public class MutableInfiniteInteger_UT
       //same object (non-special value) is covered by the other compareTo test
 
       //don't use hamcrest for these because they would use .equals
-      assertTrue(is(MutableInfiniteInteger.POSITIVE_INFINITITY, EQUAL_TO, MutableInfiniteInteger.POSITIVE_INFINITITY));
+      assertTrue(is(MutableInfiniteInteger.POSITIVE_INFINITY, EQUAL_TO, MutableInfiniteInteger.POSITIVE_INFINITY));
       assertTrue(is(MutableInfiniteInteger.NaN, EQUAL_TO, MutableInfiniteInteger.NaN));  //this is logical
 
       infiniteInteger = MutableInfiniteInteger.valueOf(5);
 
       //assert in both directions to test that the code correctly checks itself and the other
-      assertThat(MutableInfiniteInteger.NaN, greaterThan(MutableInfiniteInteger.POSITIVE_INFINITITY));  //odd but that's the ordering
-      assertThat(MutableInfiniteInteger.POSITIVE_INFINITITY, lessThan(MutableInfiniteInteger.NaN));
+      assertThat(MutableInfiniteInteger.NaN, greaterThan(MutableInfiniteInteger.POSITIVE_INFINITY));  //odd but that's the ordering
+      assertThat(MutableInfiniteInteger.POSITIVE_INFINITY, lessThan(MutableInfiniteInteger.NaN));
       assertThat(MutableInfiniteInteger.NaN, greaterThan(infiniteInteger));
       assertThat(infiniteInteger, lessThan(MutableInfiniteInteger.NaN));
 
-      assertThat(MutableInfiniteInteger.NEGATIVE_INFINITITY, lessThan(infiniteInteger));
-      assertThat(infiniteInteger, greaterThan(MutableInfiniteInteger.NEGATIVE_INFINITITY));
+      assertThat(MutableInfiniteInteger.NEGATIVE_INFINITY, lessThan(infiniteInteger));
+      assertThat(infiniteInteger, greaterThan(MutableInfiniteInteger.NEGATIVE_INFINITY));
 
-      assertThat(MutableInfiniteInteger.POSITIVE_INFINITITY, greaterThan(infiniteInteger));
-      assertThat(infiniteInteger, lessThan(MutableInfiniteInteger.POSITIVE_INFINITITY));
+      assertThat(MutableInfiniteInteger.POSITIVE_INFINITY, greaterThan(infiniteInteger));
+      assertThat(infiniteInteger, lessThan(MutableInfiniteInteger.POSITIVE_INFINITY));
    }
 
    @Test
@@ -233,12 +233,12 @@ public class MutableInfiniteInteger_UT
    public void fastPaths()
    {
       //TODO: more fast paths but move them into each other test
-      assertSame(MutableInfiniteInteger.POSITIVE_INFINITITY, MutableInfiniteInteger.POSITIVE_INFINITITY.add(12));
-      assertSame(MutableInfiniteInteger.NEGATIVE_INFINITITY, MutableInfiniteInteger.NEGATIVE_INFINITITY.add(12));
+      assertSame(MutableInfiniteInteger.POSITIVE_INFINITY, MutableInfiniteInteger.POSITIVE_INFINITY.add(12));
+      assertSame(MutableInfiniteInteger.NEGATIVE_INFINITY, MutableInfiniteInteger.NEGATIVE_INFINITY.add(12));
       assertSame(MutableInfiniteInteger.NaN, MutableInfiniteInteger.NaN.add(12));
 
-      assertSame(MutableInfiniteInteger.POSITIVE_INFINITITY, MutableInfiniteInteger.POSITIVE_INFINITITY.add(BigInteger.TEN));
-      assertSame(MutableInfiniteInteger.NEGATIVE_INFINITITY, MutableInfiniteInteger.NEGATIVE_INFINITITY.add(BigInteger.TEN));
+      assertSame(MutableInfiniteInteger.POSITIVE_INFINITY, MutableInfiniteInteger.POSITIVE_INFINITY.add(BigInteger.TEN));
+      assertSame(MutableInfiniteInteger.NEGATIVE_INFINITY, MutableInfiniteInteger.NEGATIVE_INFINITY.add(BigInteger.TEN));
       assertSame(MutableInfiniteInteger.NaN, MutableInfiniteInteger.NaN.add(BigInteger.TEN));
 
       MutableInfiniteInteger mutableInfiniteInteger = MutableInfiniteInteger.valueOf(12);

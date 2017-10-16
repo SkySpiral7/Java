@@ -25,6 +25,7 @@ import com.github.SkySpiral7.Java.exception.ClosedResourceException;
  * @see #close()
  * @see #append(byte[])
  */
+//TODO: prove AsynchronousFileAppender does more than BufferedOutputStream
 public final class AsynchronousFileAppender implements Closeable, Flushable
 {
    private final WriterClass writer;
