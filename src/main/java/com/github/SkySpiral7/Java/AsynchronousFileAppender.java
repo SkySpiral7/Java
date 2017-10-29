@@ -13,6 +13,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import com.github.SkySpiral7.Java.exception.ClosedResourceException;
+import com.github.SkySpiral7.Java.util.FileIoUtil;
 
 /**
  * <p>This class lets you send data into a queue that another thread will write to the file.
@@ -25,7 +26,6 @@ import com.github.SkySpiral7.Java.exception.ClosedResourceException;
  * @see #close()
  * @see #append(byte[])
  */
-//TODO: prove AsynchronousFileAppender does more than BufferedOutputStream
 public final class AsynchronousFileAppender implements Closeable, Flushable
 {
    private final WriterClass writer;
@@ -37,7 +37,7 @@ public final class AsynchronousFileAppender implements Closeable, Flushable
     *
     * @param targetFile the file that will be appended to
     *
-    * @see com.github.SkySpiral7.Java.util.FileIoUtil#writeToFile(File, String)
+    * @see FileIoUtil#writeToFile(File, String)
     * use FileIoUtil.writeToFile(targetFile, "") to clear the file
     */
    public AsynchronousFileAppender(final File targetFile)

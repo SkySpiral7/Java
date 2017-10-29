@@ -25,22 +25,22 @@ public class IdentityHashSet<E> extends AbstractSet<E> implements Set<E>
    public IdentityHashSet()
    {
       super();
-      dataMap = new IdentityHashMap<E, Boolean>();
+      dataMap = new IdentityHashMap<>();
    }
 
-   public IdentityHashSet(int expectedMaxSize)
+   public IdentityHashSet(final int expectedMaxSize)
    {
       super();
-      dataMap = new IdentityHashMap<E, Boolean>(expectedMaxSize);
+      dataMap = new IdentityHashMap<>(expectedMaxSize);
    }
 
-   public IdentityHashSet(Collection<? extends E> initialElements)
+   public IdentityHashSet(final Collection<? extends E> initialElements)
    {
       this(initialElements.size());
       this.addAll(initialElements);
    }
 
-   public IdentityHashSet(E[] initialElements){this(Arrays.asList(initialElements));}
+   public IdentityHashSet(final E[] initialElements){this(Arrays.asList(initialElements));}
 
    @Override
    public int size()
@@ -49,7 +49,7 @@ public class IdentityHashSet<E> extends AbstractSet<E> implements Set<E>
    }
 
    @Override
-   public boolean contains(Object elementToFind)
+   public boolean contains(final Object elementToFind)
    {
       return dataMap.containsKey(elementToFind);
    }
@@ -67,13 +67,13 @@ public class IdentityHashSet<E> extends AbstractSet<E> implements Set<E>
    }
 
    @Override
-   public <T> T[] toArray(T[] destinationArray)
+   public <T> T[] toArray(final T[] destinationArray)
    {
       return dataMap.keySet().toArray(destinationArray);
    }
 
    @Override
-   public boolean add(E newElement)
+   public boolean add(final E newElement)
    {
       if (dataMap.containsKey(newElement)) return false;
       dataMap.put(newElement, Boolean.TRUE);  //always returns null
@@ -81,7 +81,7 @@ public class IdentityHashSet<E> extends AbstractSet<E> implements Set<E>
    }
 
    @Override
-   public boolean remove(Object elementToRemove)
+   public boolean remove(final Object elementToRemove)
    {
       if (dataMap.containsKey(elementToRemove)) return false;
       return dataMap.remove(elementToRemove);  //previous value is always true
