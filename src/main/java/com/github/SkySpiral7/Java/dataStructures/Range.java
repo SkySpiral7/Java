@@ -14,9 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.github.SkySpiral7.Java.numbers.AbstractInfiniteInteger;
-import com.github.SkySpiral7.Java.numbers.InfiniteInteger;
-import com.github.SkySpiral7.Java.numbers.MutableInfiniteInteger;
 import com.github.SkySpiral7.Java.pojo.Comparison;
 import com.github.SkySpiral7.Java.util.ComparableSugar;
 
@@ -33,7 +30,6 @@ import com.github.SkySpiral7.Java.util.ComparableSugar;
  *
  * @see #Range(Boundary, Boundary)
  * @see #Range(Number, String, Number)
- * @see InfiniteInteger
  * @see BoundaryInfo BoundaryInfo for details on how to get range to support more number classes
  */
 public final class Range<T_Range extends Number & Comparable<T_Range>>
@@ -64,7 +60,7 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
       this.lower = lower;
       this.upper = upper;
       @SuppressWarnings("unchecked") final Class<T_Range> temp = (Class<T_Range>) lower.getValue().getClass();
-      boundaryInfo = new BoundaryInfo<T_Range>(temp);
+      boundaryInfo = new BoundaryInfo<>(temp);
 
       checkInvariants();
    }
@@ -102,10 +98,10 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
       if (!rangePattern.matches("\\s*<?\\.\\.>?\\s*")) throw new IllegalArgumentException("Bad format for rangePattern: " + rangePattern);
       rangePattern = rangePattern.trim();
 
-      this.lower = new Boundary<T_Range>(lower, !rangePattern.startsWith("<"));
-      this.upper = new Boundary<T_Range>(upper, !rangePattern.endsWith(">"));
+      this.lower = new Boundary<>(lower, !rangePattern.startsWith("<"));
+      this.upper = new Boundary<>(upper, !rangePattern.endsWith(">"));
       @SuppressWarnings("unchecked") final Class<T_Range> temp = (Class<T_Range>) lower.getClass();
-      boundaryInfo = new BoundaryInfo<T_Range>(temp);
+      boundaryInfo = new BoundaryInfo<>(temp);
 
       checkInvariants();
    }
@@ -119,7 +115,6 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
    {
       checkForNanOfKnownClasses(lower.getValue());
       checkForNanOfKnownClasses(upper.getValue());
-      checkKnownMutableClasses(boundaryInfo.type);
 
       //checked last so that illegal class will throw first (or NaN)
       if (ComparableSugar.is(lower.getValue(), Comparison.GREATER_THAN_OR_EQUAL_TO, upper.getValue()))
@@ -141,24 +136,8 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
       {
          if (Double.isNaN((Double) num)) isLegal = false;
       }
-      else if (boundaryInfo.type.equals(InfiniteInteger.class))
-      {
-         if (((InfiniteInteger) num).isNaN()) isLegal = false;
-      }
 
       if (!isLegal) throw new IllegalArgumentException("NaN can't be a boundary");
-   }
-
-   /**
-    * @throws IllegalArgumentException if class1 is mutable
-    */
-   private static void checkKnownMutableClasses(final Class<?> class1)
-   {
-      boolean isLegal = true;
-      isLegal &= (class1 != MutableInfiniteInteger.class);  //mutable
-      isLegal &= (class1 != AbstractInfiniteInteger.class);  //could be mutable
-
-      if (!isLegal) throw new IllegalArgumentException(class1 + " is mutable");
    }
 
    /**
@@ -169,7 +148,7 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
     */
    public static <T_New extends Number & Comparable<T_New>> Boundary<T_New> inclusive(final T_New num)
    {
-      return new Boundary<T_New>(num, true);
+      return new Boundary<>(num, true);
    }
 
    /**
@@ -180,7 +159,7 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
     */
    public static <T_New extends Number & Comparable<T_New>> Boundary<T_New> exclusive(final T_New num)
    {
-      return new Boundary<T_New>(num, false);
+      return new Boundary<>(num, false);
    }
 
    /**
@@ -556,10 +535,6 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
          if (type.equals(BigInteger.class)) return (T_BoundaryInfo) BigInteger.ONE;
          if (type.equals(BigDecimal.class)) return (T_BoundaryInfo) BigDecimal.ONE;
 
-         if (type.equals(InfiniteInteger.class)) return (T_BoundaryInfo) InfiniteInteger.ONE;
-         //MutableInfiniteInteger shouldn't be used because it can violate invariants
-         //likewise for AbstractInfiniteInteger which could be mutable
-
          throw new IllegalArgumentException("stepBy is required for " + type);
       }
 
@@ -586,10 +561,6 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
 
          if (type.equals(BigInteger.class)) return (T_BoundaryInfo) ((BigInteger) starting).add((BigInteger) stepBy);
          if (type.equals(BigDecimal.class)) return (T_BoundaryInfo) ((BigDecimal) starting).add((BigDecimal) stepBy);
-
-         if (type.equals(InfiniteInteger.class)) return (T_BoundaryInfo) ((InfiniteInteger) starting).add((InfiniteInteger) stepBy);
-         //MutableInfiniteInteger shouldn't be used because it can violate invariants
-         //likewise for AbstractInfiniteInteger which could be mutable
 
          throw new IllegalArgumentException("Can't create an array for " + type);
       }
