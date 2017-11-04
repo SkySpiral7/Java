@@ -11,6 +11,16 @@ public final class RadixUtil
    private RadixUtil(){}
 
    /**
+    * This is the smallest possible radix. This radix is supported by this class.
+    */
+   public static final int MIN_RADIX = 1;
+
+   /**
+    * While there is no maximum possible radix this is the largest value supported by this class.
+    */
+   public static final int MAX_SUPPORTED_RADIX = 62;
+
+   /**
     * All possible chars for representing a number as a String up to base 62.
     * private because arrays are mutable.
     */
@@ -38,29 +48,28 @@ public final class RadixUtil
     * @throws IllegalArgumentException for unsupported radix or if the base 1 number will not fit into a String
     * @see Long#toString(long, int)
     */
-   public static String toString(long value, final int radix)
+   public static String toString(final long value, final int radix)
    {
-      enforceStandardRadix(radix);
+      RadixUtil.enforceStandardRadix(radix);
       if (1 == value) return "1";  //true for every radix
 
       final boolean isNegative = (value < 0);
-      //delegate for powers of 2 because Long uses a different (ie optimized) formula
-      //but only if value is positive because these Long methods are unsigned
-      if (!isNegative)
-      {
-         if (2 == radix) return Long.toBinaryString(value);
-         if (8 == radix) return Long.toOctalString(value);
-         if (16 == radix) return Long.toHexString(value);
-      }
-
-      if (1 == radix) return toStringBase1(value, isNegative);
+      if (1 == radix) return RadixUtil.toStringBase1(value, isNegative);
       if (0 == value) return "0";  //true for every radix except 1
+
+      //delegate for powers of 2 because Long uses a different (ie optimized) formula
+      //however it doesn't handle negative so I manually negate if possible (not possible for Min due to 2s compliment)
+      if (BitWiseUtil.isPowerOf2(radix) && Long.MIN_VALUE != value)
+      {
+         if (isNegative) return "-" + Long.toUnsignedString(-value, radix);
+         return Long.toUnsignedString(value, radix);
+      }
 
       //delegate to Long.toString(long, int) because it could be better optimized
       if (radix <= Character.MAX_RADIX) return Long.toString(value, radix);
       //Character.MAX_RADIX is max JRE supported radix not max possible
 
-      return toStringStandardBase(value, radix, isNegative);
+      return RadixUtil.toStringStandardBase(value, radix, isNegative);
    }
 
    /**
@@ -70,7 +79,7 @@ public final class RadixUtil
     */
    private static String toStringStandardBase(long value, final int radix, final boolean isNegative)
    {
-      char[] buf = new char[65];
+      final char[] buf = new char[65];
       int charPos = 64;
 
       if (!isNegative)
@@ -81,14 +90,16 @@ public final class RadixUtil
       //value is negative in order to handle max and min values alike (since negative can hold 1 more than positive)
       while (value <= -radix)
       {
-         buf[charPos--] = base62Digits[(int) (-(value % radix))];
+         buf[charPos] = RadixUtil.base62Digits[(int) (-(value % radix))];
+         charPos--;
          value /= radix;
       }
-      buf[charPos] = base62Digits[(int) (-value)];
+      buf[charPos] = RadixUtil.base62Digits[(int) (-value)];
 
       if (isNegative)
       {
-         buf[--charPos] = '-';
+         --charPos;
+         buf[charPos] = '-';
       }
 
       return new String(buf, charPos, (65 - charPos));
@@ -141,7 +152,7 @@ public final class RadixUtil
    public static long parseLong(final String inputString, final int radix)
    {
       Objects.requireNonNull(inputString, "inputString");
-      enforceStandardRadix(radix);
+      RadixUtil.enforceStandardRadix(radix);
 
       if (1 == radix)
       {
@@ -153,7 +164,7 @@ public final class RadixUtil
          return inputString.length();
       }
 
-      return parseLongStandardBase(inputString, radix);
+      return RadixUtil.parseLongStandardBase(inputString, radix);
    }
 
    /**
@@ -168,12 +179,12 @@ public final class RadixUtil
       int i = 0;
       final int inputLength = inputString.length();
       long limit = -Long.MAX_VALUE;
-      long multmin;
+      final long multmin;
       int digit;
 
       if (inputLength == 0) throw NumberFormatException.forInputRadix(inputString, radix);
 
-      char firstChar = inputString.charAt(0);
+      final char firstChar = inputString.charAt(0);
       if (firstChar < '0')
       { // Possible leading "+" or "-"
          if (firstChar == '-')
@@ -190,7 +201,8 @@ public final class RadixUtil
       while (i < inputLength)
       {
          // Accumulating negatively avoids surprises near MAX_VALUE
-         digit = getDigitValue(inputString.charAt(i++), radix);
+         digit = RadixUtil.getDigitValue(inputString.charAt(i), radix);
+         i++;
          if (digit < 0)
          {
             throw NumberFormatException.forInputRadix(inputString, radix);
@@ -226,7 +238,7 @@ public final class RadixUtil
     */
    public static int getDigitValue(final char digit, final int radix)
    {
-      enforceStandardRadix(radix);
+      RadixUtil.enforceStandardRadix(radix);
 
       if (1 == radix)
       {
@@ -236,9 +248,9 @@ public final class RadixUtil
       }
 
       //why is there no Arrays.indexOf?
-      for (int i = 0; i < base62Digits.length && i < radix; i++)
+      for (int i = 0; i < RadixUtil.base62Digits.length && i < radix; i++)
       {
-         if (digit == base62Digits[i]) return i;
+         if (digit == RadixUtil.base62Digits[i]) return i;
       }
 
       return -1;
@@ -246,8 +258,8 @@ public final class RadixUtil
 
    private static void enforceStandardRadix(final int radix)
    {
-      if (radix < 1) throw new IllegalArgumentException("radix < 1 (was " + radix + ")");
-      if (radix > 62) throw new IllegalArgumentException("radix > 62 (was " + radix + ")");
+      if (radix < RadixUtil.MIN_RADIX) throw new IllegalArgumentException("radix < 1 (was " + radix + ")");
+      if (radix > RadixUtil.MAX_SUPPORTED_RADIX) throw new IllegalArgumentException("radix > 62 (was " + radix + ")");
    }
 
 }
