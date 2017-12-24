@@ -119,7 +119,7 @@ public final class AsynchronousFileReader implements Closeable
     * This method will wait if the queue is empty.
     *
     * @param byteCount the number of bytes to read
-    * @param encoding the character set used to decode the bytes
+    * @param encoding  the character set used to decode the bytes
     *
     * @see #readBytes(int)
     */

@@ -153,8 +153,7 @@ public final class FileGatherer
    public static final class Filters
    {
       public static final Predicate<Path> ACCEPT_ALL = path -> true;
-      public static final Predicate<Path> EXCLUDE_HIDDEN = path ->
-      {
+      public static final Predicate<Path> EXCLUDE_HIDDEN = path -> {
          try
          {
             return Files.isHidden(path);

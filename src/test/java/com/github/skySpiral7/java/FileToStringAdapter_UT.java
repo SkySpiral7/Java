@@ -22,8 +22,8 @@ public class FileToStringAdapter_UT
 {
    private String projectPath = "tests/";
    //projectPath can be "" (same as "./") or any relative or absolute path. It is only used for the 2 constructors
-   private String smallFileContents = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\r\nABCDEFGHIJKLMNOPQRSTUVWXYZ\r\nabcdefghijklmnopqrstuvwxyz\r"
-                                      + "\nabcdefghijklmnopqrstuvwxyz";
+   private String smallFileContents =
+         "ABCDEFGHIJKLMNOPQRSTUVWXYZ\r\nABCDEFGHIJKLMNOPQRSTUVWXYZ\r\nabcdefghijklmnopqrstuvwxyz\r" + "\nabcdefghijklmnopqrstuvwxyz";
    private FileToStringAdapter smallFile = new FileToStringAdapter(projectPath + "smallFile.txt");
    private FileToStringAdapter largeFile = new FileToStringAdapter(projectPath + "no largeFile.txt");
    //TODO: after done, turn the large file on for certain tests to find out which ones it can reasonably do

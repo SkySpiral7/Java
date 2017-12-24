@@ -13,12 +13,14 @@ public class BitWiseUtil
 
    /**
     * Works for negative (including Long.MIN_VALUE) and unsigned values.
+    *
     * @return true if abs(x)%2==0
     */
    public static boolean isEven(final long x){return ((x & 1) == 0);}
 
    /**
     * Works for negative (including Long.MIN_VALUE) and unsigned values.
+    *
     * @return true if abs(x)%2==1
     */
    public static boolean isOdd(final long x){return ((x & 1) == 1);}

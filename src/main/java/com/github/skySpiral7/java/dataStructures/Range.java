@@ -395,8 +395,7 @@ public final class Range<T_Range extends Number & Comparable<T_Range>>
    {
       Objects.requireNonNull(typeOf, "typeOf");
       Objects.requireNonNull(stepBy, "stepBy");  //redundant but easier to understand stack trace
-      return createStream(stepBy).map((T_Range input) ->
-      {
+      return createStream(stepBy).map((T_Range input) -> {
          return convertTo(input, typeOf);
       });
    }
