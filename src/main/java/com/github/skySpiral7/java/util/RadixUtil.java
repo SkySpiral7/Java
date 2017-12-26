@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.github.skySpiral7.java.numbers.NumberFormatException;
 import com.github.skySpiral7.java.numbers.NumericOverflowException;
+import com.github.skySpiral7.java.numbers.WillNotFitException;
 
 public final class RadixUtil
 {
@@ -45,7 +46,8 @@ public final class RadixUtil
     *
     * @return a String that represents value in the given number base (radix).
     *
-    * @throws IllegalArgumentException for unsupported radix or if the base 1 number will not fit into a String
+    * @throws IllegalArgumentException for unsupported radix
+    * @throws WillNotFitException      if the base 1 number will not fit into a String
     * @see Long#toString(long, int)
     */
    public static String toString(final long value, final int radix)
@@ -109,15 +111,15 @@ public final class RadixUtil
    {
       if (0 == value) return "";
       //must check for Long.Min here to avoid 2s complement issue
-      if (Long.MIN_VALUE == value) throw new IllegalArgumentException(value + " in base 1 would exceed max string length");
+      if (Long.MIN_VALUE == value) throw new WillNotFitException(value + " in base 1 would exceed max string length");
       String sign = "";
       if (isNegative)
       {
-         if (-Integer.MAX_VALUE == value) throw new IllegalArgumentException(value + " in base 1 would exceed max string length");
+         if (-Integer.MAX_VALUE == value) throw new WillNotFitException(value + " in base 1 would exceed max string length");
          sign = "-";
          value = Math.abs(value);
       }
-      if (value > Integer.MAX_VALUE) throw new IllegalArgumentException(value + " in base 1 would exceed max string length");
+      if (value > Integer.MAX_VALUE) throw new WillNotFitException(value + " in base 1 would exceed max string length");
 
       //I'm not checking for array overhead such as -8 since it is implementation dependent
       final char[] ones = new char[(int) value];
@@ -258,8 +260,8 @@ public final class RadixUtil
 
    private static void enforceStandardRadix(final int radix)
    {
-      if (radix < RadixUtil.MIN_RADIX) throw new IllegalArgumentException("radix < 1 (was " + radix + ")");
-      if (radix > RadixUtil.MAX_SUPPORTED_RADIX) throw new IllegalArgumentException("radix > 62 (was " + radix + ")");
+      if (radix < RadixUtil.MIN_RADIX) throw new IllegalArgumentException("expected: radix < 1 got: " + radix);
+      if (radix > RadixUtil.MAX_SUPPORTED_RADIX) throw new IllegalArgumentException("expected: radix > 62 got: " + radix);
    }
 
 }
