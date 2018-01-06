@@ -131,7 +131,7 @@ public class ClassUtil_UT
       }
       catch (final IllegalArgumentException actual)
       {
-         assertEquals("java.lang.String isn't a primitive class or is void.class", actual.getMessage());
+         assertEquals("java.lang.String isn't a primitive class", actual.getMessage());
       }
    }
 
@@ -145,7 +145,7 @@ public class ClassUtil_UT
       }
       catch (final IllegalArgumentException actual)
       {
-         assertEquals("void isn't a primitive class or is void.class", actual.getMessage());
+         assertEquals("void has no box class", actual.getMessage());
       }
    }
 

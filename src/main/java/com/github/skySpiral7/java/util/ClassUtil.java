@@ -77,7 +77,7 @@ public enum ClassUtil
    /**
     * @return the primitive class that matches the passed in boxedClass
     *
-    * @throws IllegalArgumentException if boxedClass isn't a boxed class. Note that Void isn't a boxed class.
+    * @throws IllegalArgumentException if boxedClass isn't a boxed class. Note that java.lang.Void isn't a boxed class.
     */
    public static Class<?> unboxClass(final Class<?> boxedClass)
    {
@@ -97,7 +97,8 @@ public enum ClassUtil
    /**
     * @return the boxed class that matches the passed in primitiveClass
     *
-    * @throws IllegalArgumentException if primitiveClass isn't a primitive class or is void.class since Void.class isn't a boxed class.
+    * @throws IllegalArgumentException if primitiveClass isn't a primitive class
+    * @throws IllegalArgumentException if primitiveClass is primitive void.class since java.lang.Void.class isn't a boxed class.
     */
    public static Class<?> boxClass(final Class<?> primitiveClass)
    {
@@ -110,8 +111,8 @@ public enum ClassUtil
       if (double.class.equals(primitiveClass)) return Double.class;
       if (boolean.class.equals(primitiveClass)) return Boolean.class;
       if (char.class.equals(primitiveClass)) return Character.class;
-      //if (void.class.equals(primitiveClass)) return Void.class;
-      throw new IllegalArgumentException(primitiveClass.getName() + " isn't a primitive class or is void.class");
+      if (void.class.equals(primitiveClass)) throw new IllegalArgumentException("void has no box class");
+      throw new IllegalArgumentException(primitiveClass.getName() + " isn't a primitive class");
    }
 
    /**

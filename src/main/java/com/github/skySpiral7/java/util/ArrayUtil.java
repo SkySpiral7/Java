@@ -25,6 +25,7 @@ public enum ArrayUtil
       {
          baseComponent = baseComponent.getComponentType();
       }
+      //baseComponent can't be null (by this point) or primitive void (but can be java.lang.Void)
       return baseComponent;
    }
 }
