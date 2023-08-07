@@ -27,24 +27,21 @@ If you would like to test using the large file, the UT includes a method to recr
 
 #Works in progress
 1. FileToStringAdapter
-2. InfiniteInteger
 
 #Finished but Untested
 1. BasicSetTheory
-2. BitWiseUtil
-3. ComparableSugar
-4. DequeNode
-5. DequeNodeIterator
-6. DescendingListIterator
-7. FileGatherer
-8. InfinitelyLinkedList
-9. IteratorExternal
-10. JsonHelper
-11. JumpingIteratorExternalRandomAccess
-12. LinkedList
-13. ListIteratorExternal
-14. MapEntryExternal
-15. SimpleLogger
+2. ComparableSugar
+3. DequeNode
+4. DequeNodeIterator
+5. DescendingListIterator
+6. FileGatherer
+7. IteratorExternal
+8. JsonHelper
+9. JumpingIteratorExternalRandomAccess
+10. LinkedList
+11. ListIteratorExternal
+12. MapEntryExternal
+13. SimpleLogger
 
 #Finished and Tested
 1. JumpingIterator although an interface the static and default methods are tested
@@ -52,10 +49,8 @@ If you would like to test using the large file, the UT includes a method to recr
 #Finished without anything to test
 1. Copyable (interface)
 2. Comparison (enum without functionality)
-3. IdentityHashSet (delegates without functionality)
-4. IntegerQuotient (bean)
-5. JumpingIteratorDecoratorSequential (delegates without functionality)
-6. ListIndexOutOfBoundsException (exception class)
-7. ModCountList (interface)
-8. ReadOnlyIterator (delegates without test-worthy functionality)
-9. ReadOnlyListIterator (delegates without test-worthy functionality)
+3. JumpingIteratorDecoratorSequential (delegates without functionality)
+4. ListIndexOutOfBoundsException (exception class)
+5. ModCountList (interface)
+6. ReadOnlyIterator (delegates without test-worthy functionality)
+7. ReadOnlyListIterator (delegates without test-worthy functionality)
